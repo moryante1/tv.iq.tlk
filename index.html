@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="مشغل فيديو M3U يتيح لك مشاهدة قنوات الفيديو بسهولة على جهازك.">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="stylesheet" href="styles.css">
+    <title>Shashety tv live 2025</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest" defer></script>
+</head>
+<body>
+    <div class="channel-icon-container">
+        <img src="v1.png" alt="Icon All Channel" class="">
+        
+    </div>
+
+    <div class="app-container">
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+            <!-- مشغل الفيديو -->
+            <div class="video-player">
+                <video id="m3u-video" controls aria-label="مشغل الفيديو">
+                    المتصفح الخاص بك لا يدعم تشغيل الفيديو.
+                </video>
+            </div>
+
+            <!-- عناصر التحكم -->
+            <div class="video-controls">
+                <div class="progress-bar">
+                    <div class="progress"></div>
+                </div>
+                <div class="controls">
+                    <!-- زر التشغيل والإيقاف -->
+                    <button class="play-pause-btn" aria-label="تشغيل / إيقاف الفيديو">▶️</button>
+                    <!-- زر كتم الصوت -->
+                    <button class="mute-btn" aria-label="كتم الصوت">🔊</button>
+                    <!-- شريط التحكم في الصوت -->
+                    <input type="range" class="volume-slider" min="0" max="1" step="0.1" value="1" aria-label="ضبط مستوى الصوت">
+                    <span class="time">00:00</span>
+                    <!-- زر ملء الشاشة -->
+                    <button class="fullscreen-btn" aria-label="التبديل إلى ملء الشاشة">⛶</button>
+                    <!-- زر إعادة التشغيل -->
+                    <button class="restart-btn" aria-label="إعادة التشغيل">🔄</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- القائمة الجانبية للقنوات -->
+        <aside class="sidebar">
+            <h3>القنوات</h3>
+            <ul id="channel-list">
+                <!-- سيتم إضافة القنوات هنا -->
+            </ul>
+        </aside>
+    </div>
+
+    <script src="script.js" defer></script>
+    
+</body>
+</html>
