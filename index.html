@@ -14,7 +14,6 @@
 <body>
     <div class="channel-icon-container">
         <img src="v1.png" alt="Icon All Channel" class="">
-        
     </div>
 
     <div class="app-container">
@@ -55,9 +54,28 @@
                 <!-- سيتم إضافة القنوات هنا -->
             </ul>
         </aside>
+
+        <!-- عرض عدد العملاء -->
+        <div class="client-counter">
+            <h4>client: <span id="client-count">0</span></h4>
+        </div>
     </div>
 
     <script src="script.js" defer></script>
     
+    <script>
+        // تخزين العدد في الذاكرة
+        let clientCount = localStorage.getItem('clientCount');
+        if (!clientCount) {
+            clientCount = 0;
+        }
+
+        // زيادة العدد عند كل تحميل للصفحة
+        clientCount++;
+        localStorage.setItem('clientCount', clientCount);
+
+        // عرض العدد في الصفحة
+        document.getElementById('client-count').textContent = clientCount;
+    </script>
 </body>
 </html>
