@@ -9,6 +9,21 @@ const fullscreenBtn = document.querySelector('.fullscreen-btn');
 const restartBtn = document.querySelector('.restart-btn');
 const channelList = document.getElementById('channel-list');
 
+// عداد العملاء
+function updateVisitorCount() {
+    let visitorCount = localStorage.getItem("visitorCount") || 0;
+    visitorCount++;
+    localStorage.setItem("visitorCount", visitorCount);
+
+    // عرض العدد في قسم مخصص
+    const visitorCountElement = document.getElementById("visitor-count");
+    if (visitorCountElement) {
+        visitorCountElement.textContent = `عدد العملاء: ${visitorCount}`;
+    }
+}
+
+
+
 // قائمة القنوات (يمكن استبدالها بمصدر بيانات حقيقي)
 const channels = [
 
@@ -119,3 +134,6 @@ function loadM3UChannels() {
 
 // تحميل القنوات عند بدء التشغيل
 loadM3UChannels();
+
+
+
