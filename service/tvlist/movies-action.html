@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>مشغل فيديو HLS مع ميزات متقدمة</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* تنسيق عام */
+    body {
+      font-family: Arial, sans-serif;
+      background: #1c1c1c;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #fff;
+      transition: background 0.5s, color 0.5s;
+    }
+
+    body.light-mode {
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    /* حاوية الفيديو */
+    .video-container {
+      position: relative;
+      width: 90%;
+      max-width: 800px;
+      background: #000;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .video-container.theater-mode {
+      max-width: 100%;
+      border-radius: 0;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* الفيديو */
+    #video {
+      width: 100%;
+      display: block;
+      border-radius: 15px 15px 0 0;
+      cursor: pointer;
+    }
+
+    /* عناصر التحكم */
+    .controls {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      box-sizing: border-box;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .video-container:hover .controls {
+      opacity: 1;
+    }
+
+    /* الأزرار */
+    .btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      margin: 0 5px;
+      transition: transform 0.2s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+
+    .btn:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    /* تلميحات الأزرار */
+    .btn::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .btn:hover::after {
+      opacity: 1;
+    }
+
+    /* شريط التقدم */
+    input[type="range"] {
+      flex: 1;
+      margin: 0 10px;
+      height: 5px;
+      background: #555;
+      outline: none;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+      border-radius: 5px;
+    }
+
+    input[type="range"]:hover {
+      opacity: 1;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      background: #fff;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* مؤشر التحميل */
+    #loading {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .loading-dots span {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .loading-dots span:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .loading-dots span:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: translateY(0);
+      }
+      40% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* علامة البث المباشر */
+    #live-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: red;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+    }
+
+    #live-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      margin-right: 5px;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* عرض جودة الفيديو والنطاق الترددي */
+    #quality-bandwidth {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    /* زر الوضع الليلي */
+    #dark-mode-toggle {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.3s;
+    }
+
+    #dark-mode-toggle:hover {
+      transform: scale(1.2);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* قوائم الجودة والسرعة */
+    .menu {
+      position: absolute;
+      bottom: 60px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.9);
+      border-radius: 10px;
+      padding: 10px;
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .menu button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 5px;
+      transition: background 0.2s;
+    }
+
+    .menu button:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* تحسينات للأجهزة المحمولة */
+    @media (max-width: 768px) {
+      .video-container {
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        border-radius: 0;
+      }
+
+      #video {
+        border-radius: 0;
+      }
+
+      .controls {
+        padding: 5px;
+        opacity: 1; /* إظهار عناصر التحكم دائمًا على الأجهزة المحمولة */
+      }
+
+      .btn {
+        font-size: 16px;
+      }
+
+      #dark-mode-toggle {
+        top: 20px;
+        right: 10px;
+      }
+
+      .menu {
+        bottom: 50px;
+        right: 5px;
+      }
+    }
+
+    /* Ambient Mode */
+    .ambient-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: radial-gradient(circle, transparent 10%, #000 70%);
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    .ambient-mode.active {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="video-container">
+    <video id="video" width="100%" height="100%" preload="auto" playsinline></video>
+    <div id="loading">
+      <div class="loading-dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    <div id="live-badge">بث مباشر</div>
+    <div class="controls">
+      <button id="play-pause" class="btn" data-tooltip="تشغيل/إيقاف"><i class="fas fa-play"></i></button>
+      <input type="range" id="seek-bar" value="0">
+      <button id="mute-unmute" class="btn" data-tooltip="كتم/إلغاء الكتم"><i class="fas fa-volume-up"></i></button>
+      <input type="range" id="volume-bar" min="0" max="1" step="0.1" value="1">
+      <button id="quality-btn" class="btn" data-tooltip="الجودة"><i class="fas fa-cog"></i></button>
+      <button id="speed-btn" class="btn" data-tooltip="السرعة"><i class="fas fa-tachometer-alt"></i></button>
+      <button id="fullscreen" class="btn" data-tooltip="ملء الشاشة"><i class="fas fa-expand"></i></button>
+      <button id="theater-mode" class="btn" data-tooltip="وضع المسرح"><i class="fas fa-film"></i></button>
+      <button id="sleep-timer" class="btn" data-tooltip="مؤقت النوم"><i class="fas fa-clock"></i></button>
+      <button id="ambient-mode" class="btn" data-tooltip="وضع الإضاءة"><i class="fas fa-moon"></i></button>
+      <button id="autoplay-toggle" class="btn" data-tooltip="تشغيل تلقائي"><i class="fas fa-play-circle"></i></button>
+    </div>
+    <button id="dark-mode-toggle" class="btn"><i class="fas fa-moon"></i></button>
+    <div id="quality-menu" class="menu">
+      <button data-quality="auto">تلقائي</button>
+      <button data-quality="360">360p</button>
+      <button data-quality="480">480p</button>
+      <button data-quality="720">720p</button>
+    </div>
+    <div id="speed-menu" class="menu">
+      <button data-speed="0.5">0.5x</button>
+      <button data-speed="1">1x</button>
+      <button data-speed="1.5">1.5x</button>
+      <button data-speed="2">2x</button>
+    </div>
+    <div id="sleep-timer-menu" class="menu">
+      <button data-time="5">5 دقائق</button>
+      <button data-time="10">10 دقائق</button>
+      <button data-time="15">15 دقائق</button>
+      <button data-time="30">30 دقائق</button>
+    </div>
+  </div>
+  <div class="ambient-mode" id="ambient-mode-bg"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const video = document.getElementById('video');
+      const playPauseBtn = document.getElementById('play-pause');
+      const seekBar = document.getElementById('seek-bar');
+      const volumeBar = document.getElementById('volume-bar');
+      const muteUnmuteBtn = document.getElementById('mute-unmute');
+      const fullscreenBtn = document.getElementById('fullscreen');
+      const qualityBtn = document.getElementById('quality-btn');
+      const speedBtn = document.getElementById('speed-btn');
+      const theaterModeBtn = document.getElementById('theater-mode');
+      const sleepTimerBtn = document.getElementById('sleep-timer');
+      const ambientModeBtn = document.getElementById('ambient-mode');
+      const autoplayToggleBtn = document.getElementById('autoplay-toggle');
+      const loading = document.getElementById('loading');
+      const darkModeToggle = document.getElementById('dark-mode-toggle');
+      const qualityMenu = document.getElementById('quality-menu');
+      const speedMenu = document.getElementById('speed-menu');
+      const sleepTimerMenu = document.getElementById('sleep-timer-menu');
+      const ambientModeBg = document.getElementById('ambient-mode-bg');
+
+      const source = "https://shls-live-enc.edgenextcdn.net/out/v1/46079e838e65490c8299f902a7731168/index_2.m3u8";
+
+      let hls;
+      let sleepTimer;
+      let isAutoplay = false;
+
+      if (Hls.isSupported()) {
+        hls = new Hls();
+        hls.loadSource(source);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (isAutoplay) video.play();
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = source;
+        video.addEventListener('loadedmetadata', () => {
+          if (isAutoplay) video.play();
+        });
+      }
+
+      // Play/Pause
+      playPauseBtn.addEventListener('click', () => {
+        if (video.paused) {
+          video.play();
+          playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+          video.pause();
+          playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
+      });
+
+      // Seek Bar
+      video.addEventListener('timeupdate', () => {
+        seekBar.value = (video.currentTime / video.duration) * 100;
+      });
+
+      seekBar.addEventListener('input', () => {
+        const time = (seekBar.value * video.duration) / 100;
+        video.currentTime = time;
+      });
+
+      // Volume Bar
+      volumeBar.addEventListener('input', () => {
+        video.volume = volumeBar.value;
+        if (video.volume === 0) {
+          muteUnmuteBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        } else {
+          muteUnmuteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+        }
+      });
+
+      // Mute/Unmute
+      muteUnmuteBtn.addEventListener('click', () => {
+        if (video.volume === 0) {
+          video.volume = 1;
+          volumeBar.value = 1;
+          muteUnmuteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+        } else {
+          video.volume = 0;
+          volumeBar.value = 0;
+          muteUnmuteBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        }
+      });
+
+      // Fullscreen
+      fullscreenBtn.addEventListener('click', () => {
+        toggleFullscreen();
+      });
+
+      // Double Click to Fullscreen
+      video.addEventListener('dblclick', () => {
+        toggleFullscreen();
+      });
+
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          if (video.requestFullscreen) {
+            video.requestFullscreen();
+          } else if (video.webkitRequestFullscreen) { // Safari
+            video.webkitRequestFullscreen();
+          } else if (video.mozRequestFullScreen) { // Firefox
+            video.mozRequestFullScreen();
+          } else if (video.msRequestFullscreen) { // IE/Edge
+            video.msRequestFullscreen();
+          }
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) { // Safari
+            document.webkitExitFullscreen();
+          } else if (document.mozCancelFullScreen) { // Firefox
+            document.mozCancelFullScreen();
+          } else if (document.msExitFullscreen) { // IE/Edge
+            document.msExitFullscreen();
+          }
+        }
+      }
+
+      // Theater Mode
+      theaterModeBtn.addEventListener('click', () => {
+        document.querySelector('.video-container').classList.toggle('theater-mode');
+      });
+
+      // Sleep Timer
+      sleepTimerBtn.addEventListener('click', () => {
+        sleepTimerMenu.style.display = sleepTimerMenu.style.display === 'flex' ? 'none' : 'flex';
+      });
+
+      sleepTimerMenu.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => {
+          const time = parseInt(button.getAttribute('data-time'));
+          setSleepTimer(time);
+          sleepTimerMenu.style.display = 'none';
+        });
+      });
+
+      function setSleepTimer(minutes) {
+        if (sleepTimer) clearTimeout(sleepTimer);
+        sleepTimer = setTimeout(() => {
+          video.pause();
+          alert(`تم إيقاف التشغيل بعد ${minutes} دقيقة(s).`);
+        }, minutes * 60 * 1000);
+      }
+
+      // Ambient Mode
+      ambientModeBtn.addEventListener('click', () => {
+        ambientModeBg.classList.toggle('active');
+      });
+
+      // Quality Menu
+      qualityBtn.addEventListener('click', () => {
+        qualityMenu.style.display = qualityMenu.style.display === 'flex' ? 'none' : 'flex';
+        speedMenu.style.display = 'none';
+      });
+
+      qualityMenu.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => {
+          const quality = button.getAttribute('data-quality');
+          if (hls) {
+            if (quality === 'auto') {
+              hls.currentLevel = -1; // تلقائي
+            } else {
+              hls.levels.forEach((level, index) => {
+                if (level.height === parseInt(quality)) {
+                  hls.currentLevel = index;
+                }
+              });
+            }
+          }
+          qualityMenu.style.display = 'none';
+        });
+      });
+
+      // Speed Menu
+      speedBtn.addEventListener('click', () => {
+        speedMenu.style.display = speedMenu.style.display === 'flex' ? 'none' : 'flex';
+        qualityMenu.style.display = 'none';
+      });
+
+      speedMenu.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => {
+          const speed = parseFloat(button.getAttribute('data-speed'));
+          video.playbackRate = speed;
+          speedMenu.style.display = 'none';
+        });
+      });
+
+      // Loading Indicator
+      video.addEventListener('waiting', () => {
+        loading.style.display = 'flex';
+      });
+
+      video.addEventListener('playing', () => {
+        loading.style.display = 'none';
+      });
+
+      // Dark Mode Toggle
+      darkModeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        darkModeToggle.innerHTML = document.body.classList.contains('light-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        localStorage.setItem('darkMode', document.body.classList.contains('light-mode') ? 'off' : 'on');
+      });
+
+      // Autoplay Toggle
+      autoplayToggleBtn.addEventListener('click', () => {
+        isAutoplay = !isAutoplay;
+        autoplayToggleBtn.innerHTML = isAutoplay ? '<i class="fas fa-pause-circle"></i>' : '<i class="fas fa-play-circle"></i>';
+        autoplayToggleBtn.setAttribute('data-tooltip', isAutoplay ? 'إيقاف التشغيل التلقائي' : 'تشغيل تلقائي');
+        if (isAutoplay) video.play();
+        else video.pause();
+      });
+
+      // حفظ التفضيلات
+      if (localStorage.getItem('darkMode') === 'on') {
+        document.body.classList.remove('light-mode');
+        darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+      } else {
+        document.body.classList.add('light-mode');
+        darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      }
+    });
+  </script>
+</body>
+</html>
