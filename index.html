@@ -354,12 +354,36 @@
                 grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             }
         }
+
+        /* رسالة تثبيت التطبيق */
+        #installPrompt {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+        }
+
+        #installPrompt button {
+            background: white;
+            color: #007bff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <!-- Video Background -->
     <video id="video-background" autoplay loop muted playsinline>
-    <source src="service/animation/Naruto.mp4" type="video/mp4">
+        <source src="service/animation/Naruto.mp4" type="video/mp4">
         Your browser does not support the video tag.
     </video>
 
@@ -450,8 +474,51 @@
         </div>
     </footer>
 
-    <!-- JavaScript for Dark/Light Mode Toggle -->
+    <!-- رسالة تثبيت التطبيق -->
+    <div id="installPrompt">
+        <span>هل تريد تثبيت تطبيقنا؟</span>
+        <button id="installButton">تثبيت</button>
+        <button id="dismissButton">تجاهل</button>
+    </div>
+
+    <!-- JavaScript -->
     <script>
+        // تتبع عدد مرات التحديث
+        let refreshCount = localStorage.getItem('refreshCount') || 0;
+        refreshCount++;
+        localStorage.setItem('refreshCount', refreshCount);
+
+        // عرض رسالة التثبيت بعد 3 تحديثات
+        if (refreshCount >= 3) {
+            document.getElementById('installPrompt').style.display = 'block';
+        }
+
+        // حدث تثبيت PWA
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            const installButton = document.getElementById('installButton');
+            installButton.addEventListener('click', () => {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('تم قبول التثبيت');
+                    } else {
+                        console.log('تم رفض التثبيت');
+                    }
+                    deferredPrompt = null;
+                });
+            });
+        });
+
+        // تجاهل رسالة التثبيت
+        document.getElementById('dismissButton').addEventListener('click', () => {
+            document.getElementById('installPrompt').style.display = 'none';
+        });
+
+        // Dark/Light Mode Toggle
         const themeToggle = document.getElementById('theme-toggle');
         const body = document.body;
 
