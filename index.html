@@ -505,6 +505,8 @@
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
                         console.log('تم قبول التثبيت');
+                        // توجيه المستخدم إلى الرابط المطلوب بعد التثبيت
+                        window.location.href = "https://moryante1.github.io/tv.iq.tlk/";
                     } else {
                         console.log('تم رفض التثبيت');
                     }
