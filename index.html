@@ -8,27 +8,34 @@
     <meta name="description" content="Shashety IPTV - أفضل تجربة مشاهدة للقنوات المباشرة والأفلام الحديثة.">
     <meta name="keywords" content="IPTV, شاشتي لايف, قنوات مباشرة, أفلام, رياضة, ترفيه">
     <meta name="author" content="TERA-TLK ISP">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="service/img/favicon.png">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="service/manifest.json">
     <!-- Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
         /* Global Reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            touch-action: pan-y; /* تحسين تجربة اللمس */
         }
 
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Tajawal', sans-serif;
             color: white;
             background-color: #0a0a0a;
             overflow-x: hidden;
             transition: background-color 0.5s ease, color 0.5s ease;
+            scroll-behavior: smooth; /* تمرير سلس */
         }
 
         body.light-mode {
-            background-color: #f0f0f0;
-            color: #333;
+            background-color: #f8f9fa;
+            color: #212529;
         }
 
         /* Video Background */
@@ -76,7 +83,7 @@
         }
 
         body.light-mode #content {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
@@ -120,10 +127,11 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            touch-action: manipulation; /* تحسين تجربة اللمس */
         }
 
         .button:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.6);
             background-color: rgba(255, 255, 255, 0.2);
         }
@@ -156,9 +164,9 @@
 
         /* تلميحات مخصصة */
         .button::after {
-            content: attr(data-tooltip); /* يعرض النص الموجود في data-tooltip */
+            content: attr(data-tooltip);
             position: absolute;
-            bottom: 120%; /* وضع التلميحة فوق الزر */
+            bottom: 120%;
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(0, 0, 0, 0.8);
@@ -167,15 +175,15 @@
             border-radius: 5px;
             font-size: 14px;
             white-space: nowrap;
-            opacity: 0; /* التلميحة مخفية بشكل افتراضي */
+            opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
-            z-index: 9999; /* تأكد من ظهور التلميحة فوق كل شيء */
-            pointer-events: none; /* تجنب التفاعل مع التلميحات */
+            z-index: 9999;
+            pointer-events: none;
         }
 
         .button:hover::after {
-            opacity: 1; /* إظهار التلميحة عند التمرير */
+            opacity: 1;
             visibility: visible;
         }
 
@@ -305,11 +313,53 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #00cc99;
         }
+
+        /* Responsive Design */
+        @media (max-width: 767px) {
+            body {
+                font-size: 14px;
+            }
+
+            #content {
+                margin-top: 5vh;
+                padding: 20px;
+                max-width: 90%;
+            }
+
+            .button-grid {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                gap: 10px;
+            }
+
+            .button {
+                width: 80px;
+                height: 80px;
+            }
+
+            .features {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            footer {
+                font-size: 12px;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1023px) {
+            #content {
+                max-width: 90%;
+            }
+
+            .button-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Video Background -->
     <video id="video-background" autoplay loop muted playsinline>
+        <source src="service/animation/Naruto.webm" type="video/webm">
         <source src="service/animation/Naruto.mp4" type="video/mp4">
         Your browser does not support the video tag.
     </video>
@@ -418,6 +468,13 @@
         if (savedTheme) {
             body.classList.add(savedTheme);
             themeToggle.innerHTML = `<img src="service/img/${savedTheme === 'light-mode' ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
+        }
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service Worker Registered'))
+                .catch(err => console.log('Service Worker Registration Failed: ', err));
         }
     </script>
 </body>
