@@ -17,7 +17,7 @@ const ASSETS = [
     '/service/img/icon1.png',
     '/service/img/icon2.png',
     '/service/img/icon3.png',
-    '/service/animation/Naruto.mp4',
+    '/service/animation/inex0.mp4',
 ];
 
 // تثبيت Service Worker
