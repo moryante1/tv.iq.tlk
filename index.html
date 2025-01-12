@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Global Reset */
+        /* إعادة تعيين عام */
         * {
             margin: 0;
             padding: 0;
@@ -36,6 +36,65 @@
         body.light-mode {
             background-color: #f8f9fa;
             color: #212529;
+        }
+
+        /* شاشة التحميل */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+
+        .loading-screen h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00ffcc;
+            animation: spin 1s linear infinite;
+            margin: 0 10px;
+        }
+
+        .spinner.second {
+            border-top-color: #ff00cc;
+        }
+
+        .spinner.third {
+            border-top-color: #3333ff;
+        }
+
+        .spinner.fourth {
+            border-top-color: #ffcc00;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-screen p {
+            margin-top: 20px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* إخفاء شاشة التحميل بعد الانتهاء */
+        .loading-screen.hide {
+            display: none;
         }
 
         /* Video Background */
@@ -357,9 +416,16 @@
     </style>
 </head>
 <body>
+    <!-- Shashety 4U IPTV Talkif 2025 -->
+    <div class="loading-screen" id="loadingScreen">
+        <h1>Shashety 4U IPTV Talkif 2025</h1>
+        <div class="spinner"></div>
+
+    </div>
+
     <!-- Video Background -->
     <video id="video-background" autoplay loop muted playsinline>
-    <source src="service/animation/inex0.mp4" type="video/mp4">
+        <source src="service/animation/inex0.mp4" type="video/mp4">
         Your browser does not support the video tag.
     </video>
 
@@ -450,8 +516,13 @@
         </div>
     </footer>
 
-    <!-- JavaScript for Dark/Light Mode Toggle -->
+    <!-- JavaScript for Dark/Light Mode Toggle and Loading Screen -->
     <script>
+        // إخفاء شاشة التحميل بعد 4 ثوانٍ
+        setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hide');
+        }, 1000); // 4 ثواني كمثال
+
         const themeToggle = document.getElementById('theme-toggle');
         const body = document.body;
 
