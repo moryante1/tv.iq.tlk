@@ -62,11 +62,11 @@
     /* تنسيق الأيقونات */
     .icon-container {
       display: inline-block;
-      margin: 19px;
+      margin: 15px;
       text-align: center;
       position: relative;
       opacity: 0;
-      transform: translateY(40px);
+      transform: translateY(20px);
       animation: fadeInUp 0.5s ease forwards;
       cursor: pointer;
     }
@@ -290,5 +290,20 @@
       </a>
     </div>
   </div>
+
+  <!-- تسجيل Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service3-worker.js')
+          .then((registration) => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          })
+          .catch((error) => {
+            console.log('ServiceWorker registration failed: ', error);
+          });
+      });
+    }
+  </script>
 </body>
 </html>
