@@ -1,10 +1,11 @@
 const CACHE_NAME = 'my-site-cache-v1';
 const urlsToCache = [
   '/',
-  '/animation/inx3.mp4',
+  '/index3.html',
+  '/css/styles.css',
+  '/images/logo.png',
   '/audio/track3.mp3',
-  '/icon/v1.png',
-
+  '/animation/inx3.mp4',
   'https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap'
 ];
 
