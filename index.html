@@ -8,11 +8,8 @@
     <meta name="description" content="Shashety IPTV - أفضل تجربة مشاهدة للقنوات المباشرة والأفلام الحديثة.">
     <meta name="keywords" content="IPTV, شاشتي لايف, قنوات مباشرة, أفلام, رياضة, ترفيه">
     <meta name="author" content="TERA-TLK ISP">
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="service/img/favicon.png">
-    <!-- PWA Manifest -->
     <link rel="manifest" href="service/manifest.json">
-    <!-- Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -21,7 +18,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            touch-action: pan-y; /* تحسين تجربة اللمس */
+            touch-action: pan-y;
         }
 
         body {
@@ -30,7 +27,7 @@
             background-color: #0a0a0a;
             overflow-x: hidden;
             transition: background-color 0.5s ease, color 0.5s ease;
-            scroll-behavior: smooth; /* تمرير سلس */
+            scroll-behavior: smooth;
         }
 
         body.light-mode {
@@ -186,7 +183,7 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
-            touch-action: manipulation; /* تحسين تجربة اللمس */
+            touch-action: manipulation;
         }
 
         .button:hover {
@@ -413,6 +410,53 @@
                 grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             }
         }
+
+        /* إضافة أنماط جديدة */
+        .settings-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: #20a8d8;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .license-info {
+            display: none;
+            position: fixed;
+            bottom: 70px;
+            left: 20px;
+            background-color: #fff;
+            color: #000;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4dbd74;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .connection-status.offline {
+            background-color: #f86c6b;
+        }
+
+        .button-grid .button.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -420,7 +464,6 @@
     <div class="loading-screen" id="loadingScreen">
         <h1>Shashety 4U IPTV Talkif 2025</h1>
         <div class="spinner"></div>
-
     </div>
 
     <!-- Video Background -->
@@ -432,6 +475,26 @@
     <!-- Dark/Light Mode Toggle -->
     <div class="theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
         <img src="service/img/sun.png" alt="Toggle Theme">
+    </div>
+
+    <!-- زر الإعدادات -->
+    <div class="settings-btn" id="settingsBtn">Settings / License</div>
+
+    <!-- معلومات الرخصة -->
+    <div class="license-info" id="licenseInfo">
+        <h3>System License</h3>
+        <p><strong>License ID:</strong> 5078</p>
+        <p><strong>Hardware ID:</strong> 6F16C-07V97-F4635-3F60E</p>
+        <p><strong>Status:</strong> <span style="color: green;">Active</span></p>
+        <p><strong>Expiration:</strong> 2025-01-28 10:17:43</p>
+        <p><strong>Client ID:</strong> N/A</p>
+        <p><strong>Max Users:</strong> 50</p>
+        <p><strong>Max Sites:</strong> 1</p>
+    </div>
+
+    <!-- حالة الاتصال -->
+    <div class="connection-status" id="connectionStatus">
+        انت متصل من قبل شركة IP TV 4U
     </div>
 
     <!-- Main Content -->
@@ -516,36 +579,7 @@
         </div>
     </footer>
 
-    <!-- JavaScript for Dark/Light Mode Toggle and Loading Screen -->
-    <script>
-        // إخفاء شاشة التحميل بعد 4 ثوانٍ
-        setTimeout(() => {
-            document.getElementById('loadingScreen').classList.add('hide');
-        }, 1000); // 4 ثواني كمثال
-
-        const themeToggle = document.getElementById('theme-toggle');
-        const body = document.body;
-
-        themeToggle.addEventListener('click', () => {
-            body.classList.toggle('light-mode');
-            const isLightMode = body.classList.contains('light-mode');
-            themeToggle.innerHTML = `<img src="service/img/${isLightMode ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
-            localStorage.setItem('theme', isLightMode ? 'light-mode' : '');
-        });
-
-        // Load saved theme preference
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            body.classList.add(savedTheme);
-            themeToggle.innerHTML = `<img src="service/img/${savedTheme === 'light-mode' ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
-        }
-
-        // Register Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(() => console.log('Service Worker Registered'))
-                .catch(err => console.log('Service Worker Registration Failed: ', err));
-        }
-    </script>
+    <!-- تضمين ملف JavaScript -->
+    <script src="script.js"></script>
 </body>
 </html>
