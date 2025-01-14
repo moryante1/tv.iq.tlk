@@ -515,7 +515,7 @@
         </div>
     </footer>
 
-    <!-- JavaScript for Dark/Light Mode Toggle and Loading Screen -->
+    <!-- JavaScript for Dark/Light Mode Toggle, Loading Screen, and IP Verification -->
     <script>
         // إخفاء شاشة التحميل بعد 4 ثوانٍ
         setTimeout(() => {
@@ -545,40 +545,34 @@
                 .then(() => console.log('Service Worker Registered'))
                 .catch(err => console.log('Service Worker Registration Failed: ', err));
         }
-    </script>
 
-    <!-- PHP Script for IP Verification -->
-    <?php
-    // بدء الجلسة
-    session_start();
+        // IP Verification using JavaScript
+        const allowedIP = "91.192.7.142";
 
-    // عنوان IP المحدد للتحقق
-    $allowed_ip = "91.192.7.142";
-
-    // الحصول على عنوان IP الخاص بالمستخدم
-    $user_ip = $_SERVER['REMOTE_ADDR'];
-
-    // التحقق مما إذا كان عنوان IP مطابقًا
-    if ($user_ip === $allowed_ip) {
-        // تخزين حالة التحقق في الجلسة
-        $_SESSION['ip_verified'] = true;
-        $message = "أنت متصل من خلال IPTV 4U.";
-    } else {
-        $message = "أنت غير متصل من خلال IPTV 4U.";
-    }
-
-    // إخفاء الرسالة إذا تم التحقق مسبقًا
-    if (isset($_SESSION['ip_verified']) && $_SESSION['ip_verified'] === true) {
-        $message = ""; // إخفاء الرسالة
-    }
-    ?>
-
-    <!-- Display IP Verification Message -->
-    <script>
-        const ipMessage = "<?php echo $message; ?>";
-        if (ipMessage) {
-            alert(ipMessage);
+        // Function to get user's IP address
+        async function getUserIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                console.error('Error fetching IP:', error);
+                return null;
+            }
         }
+
+        // Function to verify IP
+        async function verifyIP() {
+            const userIP = await getUserIP();
+            if (userIP === allowedIP) {
+                alert("أنت متصل من خلال IPTV 4U.");
+            } else {
+                alert("أنت غير متصل من خلال IPTV 4U.");
+            }
+        }
+
+        // Run IP verification when the page loads
+        verifyIP();
     </script>
 </body>
 </html>
