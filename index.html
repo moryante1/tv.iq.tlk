@@ -420,7 +420,6 @@
     <div class="loading-screen" id="loadingScreen">
         <h1>Shashety 4U IPTV Talkif 2025</h1>
         <div class="spinner"></div>
-
     </div>
 
     <!-- Video Background -->
@@ -545,6 +544,40 @@
             navigator.serviceWorker.register('service-worker.js')
                 .then(() => console.log('Service Worker Registered'))
                 .catch(err => console.log('Service Worker Registration Failed: ', err));
+        }
+    </script>
+
+    <!-- PHP Script for IP Verification -->
+    <?php
+    // بدء الجلسة
+    session_start();
+
+    // عنوان IP المحدد للتحقق
+    $allowed_ip = "91.192.7.142";
+
+    // الحصول على عنوان IP الخاص بالمستخدم
+    $user_ip = $_SERVER['REMOTE_ADDR'];
+
+    // التحقق مما إذا كان عنوان IP مطابقًا
+    if ($user_ip === $allowed_ip) {
+        // تخزين حالة التحقق في الجلسة
+        $_SESSION['ip_verified'] = true;
+        $message = "أنت متصل من خلال IPTV 4U.";
+    } else {
+        $message = "أنت غير متصل من خلال IPTV 4U.";
+    }
+
+    // إخفاء الرسالة إذا تم التحقق مسبقًا
+    if (isset($_SESSION['ip_verified']) && $_SESSION['ip_verified'] === true) {
+        $message = ""; // إخفاء الرسالة
+    }
+    ?>
+
+    <!-- Display IP Verification Message -->
+    <script>
+        const ipMessage = "<?php echo $message; ?>";
+        if (ipMessage) {
+            alert(ipMessage);
         }
     </script>
 </body>
