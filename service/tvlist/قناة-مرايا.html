@@ -84,15 +84,15 @@
       background: none;
       border: none;
       color: white;
-      font-size: 18px;
+      font-size: 16px;
       cursor: pointer;
-      margin: 0 5px;
+      margin: 0 3px;
       transition: transform 0.2s, opacity 0.2s;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 40px;
-      height: 40px;
+      width: 35px;
+      height: 35px;
       border-radius: 50%;
       background-color: rgba(255, 255, 255, 0.1);
       position: relative;
@@ -128,13 +128,13 @@
     /* شريط التقدم */
     input[type="range"] {
       flex: 1;
-      margin: 0 10px;
-      height: 5px;
+      margin: 0 7px;
+      height: 3px;
       background: #555;
       outline: none;
       opacity: 0.7;
       transition: opacity 0.2s;
-      border-radius: 5px;
+      border-radius: 3px;
     }
 
     input[type="range"]:hover {
@@ -219,11 +219,11 @@
 
     #live-badge::before {
       content: '';
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       background: white;
-      border-radius: 50%;
-      margin-right: 5px;
+      border-radius: 40%;
+      margin-right: 4px;
       animation: blink 1s infinite;
     }
 
@@ -311,17 +311,40 @@
       }
 
       .btn {
-        font-size: 16px;
+        font-size: 8px;
+        width: 23px;
+        height: 23px;
+        margin: 0 2px;
       }
 
-      #dark-mode-toggle {
-        top: 20px;
-        right: 10px;
+      input[type="range"] {
+        height: 3px;
+      }
+
+      .btn i {
+        font-size: 14px;
       }
 
       .menu {
         bottom: 50px;
         right: 5px;
+        padding: 5px;
+      }
+
+      .menu button {
+        font-size: 12px;
+        padding: 3px 8px;
+      }
+
+      #volume-bar {
+        width: 50px;
+      }
+
+      /* إخفاء العناصر غير الضرورية على الشاشات الصغيرة */
+      #sleep-timer,
+      #ambient-mode,
+      #autoplay-toggle {
+        display: none;
       }
     }
 
