@@ -268,6 +268,20 @@
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
 
+    /* تنسيق الفوتر */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
+      z-index: 1000;
+    }
+
     /* تحسينات للشاشات الصغيرة */
     @media (max-width: 768px) {
       nav {
@@ -315,6 +329,10 @@
       .icon-container a span {
         font-size: 0.8rem;
       }
+
+      footer {
+        font-size: 0.8rem;
+      }
     }
 
     @media (max-width: 480px) {
@@ -342,6 +360,10 @@
 
       .icon-container a span {
         font-size: 0.6rem;
+      }
+
+      footer {
+        font-size: 0.7rem;
       }
     }
   </style>
@@ -448,6 +470,11 @@
       </a>
     </div>
   </div>
+
+  <!-- الفوتر -->
+  <footer>
+    جميع الحقوق محفوظة © 2025 | Shashety 4U IPTV
+  </footer>
 
   <script>
     function toggleMenu() {
