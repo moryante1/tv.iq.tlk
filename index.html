@@ -614,7 +614,7 @@
         themeToggle.addEventListener('click', () => {
             body.classList.toggle('light-mode');
             const isLightMode = body.classList.contains('light-mode');
-            themeToggle.innerHTML = `<img src="img/${isLightMode ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
+            themeToggle.innerHTML = `<img src="service/img/${isLightMode ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
             localStorage.setItem('theme', isLightMode ? 'light-mode' : '');
         });
 
@@ -622,7 +622,7 @@
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
             body.classList.add(savedTheme);
-            themeToggle.innerHTML = `<img src="img/${savedTheme === 'light-mode' ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
+            themeToggle.innerHTML = `<img src="service/img/${savedTheme === 'light-mode' ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
         }
 
         // تسجيل Service Worker لتطبيق PWA
