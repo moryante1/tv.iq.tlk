@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -6,12 +7,12 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Shashety - شاشتي لايف</title>
     <meta name="description" content="Shashety IPTV - أفضل تجربة مشاهدة للقنوات المباشرة والأفلام الحديثة.">
-    <meta name="keywords" content="IPTV, شاشتي لايف, قنوات مباشرة, أفلام, رياضة, ترفيه">
+    <meta name="keywords" content="IPTV, شاشتي99 لايف, قنوات مباشرة, أفلام, رياضة, ترفيه">
     <meta name="author" content="TERA-TLK ISP">
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="service/img/favicon.png">
+    <link rel="icon" type="image/png" href="img/favicon.png">
     <!-- PWA Manifest -->
-    <link rel="manifest" href="service/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <!-- Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
@@ -500,14 +501,14 @@
 </head>
 <body>
     <!-- Video Background -->
-    <video id="video-background" autoplay loop muted playsinline poster="service/img/fallback.jpg">
-        <source src="service/animation/inex0.mp4" type="video/mp4">
+    <video id="video-background" autoplay loop muted playsinline poster="img/fallback.jpg">
+        <source src="animation/inex0.mp4" type="video/mp4">
         Your browser does not support the video tag.
     </video>
 
     <!-- Dark/Light Mode Toggle -->
     <div class="theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
-        <img src="service/img/sun.png" alt="Toggle Theme">
+        <img src="img/sun.png" alt="Toggle Theme">
     </div>
 
     <!-- رسالة التحقق من الاتصال -->
@@ -520,7 +521,7 @@
     <div id="content">
         <!-- Logo -->
         <div class="logo-container">
-            <img src="service/img/logo.png" alt="TE-DATA Logo" class="logo" loading="lazy">
+            <img src="img/logo.png" alt="TE-DATA Logo" class="logo" loading="lazy">
         </div>
 
         <!-- Heading -->
@@ -578,8 +579,6 @@
                 <h3>كيف يمكنني الاشتراك؟</h3>
                 <p>
                     للاشتراك، يرجى التواصل معنا عبر الواتساب
-            <a href="https://api.whatsapp.com/send/?phone=9647508385544" target="_blank" style="color: #00ffcc; text-decoration: underline;">
-                        اضغط هنا للتواصل على الواتساب
                     
                     </a>
                 </p>
@@ -593,15 +592,18 @@
 
     <!-- Footer -->
     <footer>
-        <a href="service/about.html">DEV</a>
+        <a href="about.html">4U Developer</a>
         <div class="copyright">
-            جميع الحقوق محفوظة © 2025-2024 TERA-TLK ISP
+            All rights reserved © ISP TERA-TLK
         </div>
     </footer>
 
     <!-- Back-to-Top Button -->
     <button id="backToTop" title="العودة إلى الأعلى">↑</button>
 
+    <!-- WhatsApp Widget -->
+    <a href="https://api.whatsapp.com/send/?phone=9647508385544" class="whatsapp-widget" target="_blank">
+        <img src="service/img/whatsapp_icon.png" alt="WhatsApp Support">
     </a>
 
     <!-- JavaScript for Dark/Light Mode Toggle and IP Verification -->
@@ -613,7 +615,7 @@
         themeToggle.addEventListener('click', () => {
             body.classList.toggle('light-mode');
             const isLightMode = body.classList.contains('light-mode');
-            themeToggle.innerHTML = `<img src="service/img/${isLightMode ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
+            themeToggle.innerHTML = `<img src="img/${isLightMode ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
             localStorage.setItem('theme', isLightMode ? 'light-mode' : '');
         });
 
@@ -621,7 +623,7 @@
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) {
             body.classList.add(savedTheme);
-            themeToggle.innerHTML = `<img src="service/img/${savedTheme === 'light-mode' ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
+            themeToggle.innerHTML = `<img src="img/${savedTheme === 'light-mode' ? 'moon' : 'sun'}.png" alt="Toggle Theme">`;
         }
 
         // تسجيل Service Worker لتطبيق PWA
@@ -667,7 +669,7 @@
         }
 
         // تشغيل التحقق من الاتصال عند تحميل الصفحة
-        #const myIP = '91.192.7.140'; // استبدل هذا بالـ IP الخاص بك
+        const myIP = '91.192.7.140'; // استبدل هذا بالـ IP الخاص بك
         checkServerConnection(myIP);
 
         // Back-to-Top Button
