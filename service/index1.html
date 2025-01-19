@@ -22,6 +22,18 @@
       line-height: 1.6;
     }
 
+    /* أنيميشن ظهور شريط التنقل */
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     /* شريط التنقل */
     nav {
       position: fixed;
@@ -35,6 +47,7 @@
       justify-content: center;
       align-items: center;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      animation: fadeInDown 0.5s ease-out; /* تطبيق الأنيميشن */
     }
 
     nav a {
@@ -48,6 +61,14 @@
 
     nav a:hover {
       color: #f39c12;
+    }
+
+    /* زر القائمة المنسدلة */
+    .menu-icon {
+      display: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: white;
     }
 
     /* إخفاء مشغل الصوت مع السماح له بالعمل */
@@ -206,55 +227,6 @@
     .icon-container:nth-child(9) { animation-delay: 0.9s; }
     .icon-container:nth-child(10) { animation-delay: 1s; }
 
-    /* تحسينات للشاشات الصغيرة */
-    @media (max-width: 768px) {
-      #content h1 {
-        font-size: 2rem;
-      }
-
-      #content p {
-        font-size: 1rem;
-      }
-
-      .icon {
-        width: 3rem;
-        height: 3rem;
-      }
-
-      .icon-container a span {
-        font-size: 0.8rem;
-      }
-
-      nav a {
-        font-size: 0.9rem;
-        margin: 0 10px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      #content h1 {
-        font-size: 1.5rem;
-      }
-
-      #content p {
-        font-size: 0.6rem;
-      }
-
-      .icon {
-        width: 1.5rem;
-        height: 1.5rem;
-      }
-
-      .icon-container a span {
-        font-size: 0.4rem;
-      }
-
-      nav a {
-        font-size: 0.8rem;
-        margin: 0 5px;
-      }
-    }
-
     /* أنيميشن slideInLeft للعنوان الجديد */
     @keyframes slideInLeft {
       from {
@@ -295,19 +267,99 @@
       color: #f39c12;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
+
+    /* تحسينات للشاشات الصغيرة */
+    @media (max-width: 768px) {
+      nav {
+        padding: 10px 10px;
+        flex-wrap: wrap;
+      }
+
+      nav a {
+        font-size: 0.9rem;
+        margin: 5px 8px;
+      }
+
+      .menu-icon {
+        display: block;
+      }
+
+      .nav-links {
+        display: none;
+        width: 100%;
+        text-align: center;
+      }
+
+      .nav-links a {
+        display: block;
+        margin: 10px 0;
+      }
+
+      .nav-links.active {
+        display: block;
+      }
+
+      #content h1 {
+        font-size: 2rem;
+      }
+
+      #content p {
+        font-size: 1rem;
+      }
+
+      .icon {
+        width: 3rem;
+        height: 3rem;
+      }
+
+      .icon-container a span {
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      nav {
+        padding: 8px 5px;
+      }
+
+      nav a {
+        font-size: 0.8rem;
+        margin: 3px 5px;
+      }
+
+      #content h1 {
+        font-size: 1.5rem;
+      }
+
+      #content p {
+        font-size: 0.8rem;
+      }
+
+      .icon {
+        width: 2rem;
+        height: 2rem;
+      }
+
+      .icon-container a span {
+        font-size: 0.6rem;
+      }
+    }
   </style>
 </head>
 <body>
   <!-- شريط التنقل -->
   <nav>
-    <a href="index.html">الواجهة الرئيسية</a>
-    <a href="index1.html">Mbc</a>
-    <a href="index2.html">Sports</a>
-    <a href="index3.html">Entertainment</a>
-    <a href="index4.html">Movies</a>
-    <a href="index5.html">Kids</a>
-    <a href="index6.html">OSN</a>
-    <a href="index7.html">Others</a>
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">الواجهة الرئيسية</a>
+      <a href="index1.html">Mbc</a>
+      <a href="index2.html">Sports</a>
+      <a href="index3.html">Entertainment</a>
+      <a href="index4.html">Movies</a>
+      <a href="index5.html">Kids</a>
+      <a href="index6.html">OSN</a>
+      <a href="index7.html">Others</a>
+    </div>
   </nav>
 
   <!-- تشغيل الصوت (مخفي) -->
@@ -396,5 +448,12 @@
       </a>
     </div>
   </div>
+
+  <script>
+    function toggleMenu() {
+      const navLinks = document.getElementById("navLinks");
+      navLinks.classList.toggle("active");
+    }
+  </script>
 </body>
 </html>
