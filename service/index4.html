@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="HandheldFriendly" content="true">
+  <meta name="MobileOptimized" content="width">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>TERABYTE - Shashety 4U IPTV 2025</title>
+  <!-- تحميل خطوط Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* إعدادات عامة */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
+      background-color: #000;
+      color: white;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* شريط التنقل */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 10px 20px;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+      color: #f39c12;
+    }
+
+    /* إخفاء مشغل الصوت مع السماح له بالعمل */
+    audio {
+      opacity: 0;
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+    }
+
+    /* إعدادات الفيديو الخلفية */
+    #video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      background-color: #000;
+    }
+
+    /* إعدادات المحتوى */
+    #content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: white;
+      margin-top: 20vh;
+    }
+
+    /* تنسيق العنوان الرئيسي */
+    #content h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    /* تنسيق النص الفرعي */
+    #content p {
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-bottom: 30px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* تنسيق الأيقونات */
+    .icon-container {
+      display: inline-block;
+      margin: 15px;
+      text-align: center;
+      position: relative;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s ease forwards;
+      cursor: pointer;
+    }
+
+    /* أنيميشن ظهور الأيقونات */
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .icon {
+      width: 4rem;
+      height: 4rem;
+      background-image: url('icon/v1.png');
+      background-size: cover;
+      background-position: center;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* تأثير التموج (Ripple Effect) */
+    .icon::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 10%, transparent 10.01%);
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+    }
+
+    .icon:active::after {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      transition: transform 0s, opacity 0s;
+    }
+
+    /* تأثيرات التمرير (hover) */
+    .icon-container:hover .icon {
+      transform: scale(1.1) translateY(-10px);
+      box-shadow: 0 8px 20px rgba(243, 156, 18, 0.5), 0 0 30px rgba(243, 156, 18, 0.6);
+      border-color: #f39c12;
+    }
+
+    /* تنسيق الرابط */
+    .icon-container a {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 105%;
+      height: 105%;
+      text-decoration: none;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+    }
+
+    /* تنسيق النص أسفل الأيقونة */
+    .icon-container a span {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* تأثيرات التمرير على النص */
+    .icon-container:hover a span {
+      color: #f39c12;
+      text-shadow: 0 2px 8px rgba(243, 156, 18, 0.8);
+    }
+
+    /* تأخير ظهور الأيقونات بشكل تدريجي */
+    .icon-container:nth-child(1) { animation-delay: 0.1s; }
+    .icon-container:nth-child(2) { animation-delay: 0.2s; }
+    .icon-container:nth-child(3) { animation-delay: 0.3s; }
+    .icon-container:nth-child(4) { animation-delay: 0.4s; }
+    .icon-container:nth-child(5) { animation-delay: 0.5s; }
+    .icon-container:nth-child(6) { animation-delay: 0.6s; }
+    .icon-container:nth-child(7) { animation-delay: 0.7s; }
+    .icon-container:nth-child(8) { animation-delay: 0.8s; }
+    .icon-container:nth-child(9) { animation-delay: 0.9s; }
+    .icon-container:nth-child(10) { animation-delay: 1s; }
+
+    /* تحسينات للشاشات الصغيرة */
+    @media (max-width: 768px) {
+      #content h1 {
+        font-size: 2rem;
+      }
+
+      #content p {
+        font-size: 1rem;
+      }
+
+      .icon {
+        width: 3rem;
+        height: 3rem;
+      }
+
+      .icon-container a span {
+        font-size: 0.8rem;
+      }
+
+      nav a {
+        font-size: 0.9rem;
+        margin: 0 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #content h1 {
+        font-size: 1.5rem;
+      }
+
+      #content p {
+        font-size: 0.6rem;
+      }
+
+      .icon {
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+
+      .icon-container a span {
+        font-size: 0.4rem;
+      }
+
+      nav a {
+        font-size: 0.8rem;
+        margin: 0 5px;
+      }
+    }
+
+    /* أنيميشن slideInLeft للعنوان الجديد */
+    @keyframes slideInLeft {
+      from {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* تنسيق العنوان الجديد */
+    #animated-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      padding-left: 20px;
+      animation: slideInLeft 1s ease-out forwards;
+      opacity: 0;
+      margin-bottom: 20px;
+    }
+
+    /* تنسيق أيقونة التلفزيون */
+    .icon-tv {
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+      background-image: url('icon/tv-icon.png');
+      background-size: cover;
+      margin-right: 10px;
+    }
+
+    /* تنسيق النص داخل العنوان الجديد */
+    #animated-header span {
+      font-weight: bold;
+      color: #f39c12;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- شريط التنقل -->
+  <nav>
+    <a href="index.html">الواجهة الرئيسية</a>
+    <a href="index1.html">mbc</a>
+    <a href="index2.html">Sports</a>
+    <a href="index3.html">Entertainment</a>
+    <a href="index4.html">Movies</a>
+    <a href="index5.html">Kids</a>
+    <a href="index6.html">OSN</a>
+    <a href="index7.html">Others</a>
+  </nav>
+
+  <!-- تشغيل الصوت (مخفي) -->
+  <audio controls autoplay loop>
+    <source src="audio/track4.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <!-- الفيديو الخلفية -->
+  <video id="video-background" autoplay loop muted playsinline preload="auto">
+    <source src="animation/inx4.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+    <img src="fallback-image.jpg" alt="Background Image">
+  </video>
+
+  <!-- المحتوى الرئيسي -->
+  <div id="content">
+    <!-- العنوان الجديد مع الأيقونة -->
+    <div id="animated-header">
+      <i class="icon-tv"></i>
+      <span>Shashety 4U IPTV</span>
+    </div>
+
+    <h1>استمتع بمشاهدة القنوات </h1>
+    <p>Entertainment</p>
+
+    <!-- الأيقونات مع النص أسفلها -->
+    <div class="icon-container">
+      <div class="icon"></div>
+      <a href="tvlist/Movies1.html">
+        <span>Movies1</span>
+      </a>
+    </div>
+    <div class="icon-container">
+      <div class="icon"></div>
+      <a href="tvlist/Movies2.html">
+        <span>Movies2</span>
+      </a>
+    </div>
+    <div class="icon-container">
+      <div class="icon"></div>
+      <a href="tvlist/Movies3.html">
+        <span>Movies3</span>
+      </a>
+    </div>
+    <div class="icon-container">
+      <div class="icon"></div>
+      <a href="tvlist/Movies4.html">
+        <span>Movies4</span>
+      </a>
+    </div>
+    <div class="icon-container">
+      <div class="icon"></div>
+      <a href="tvlist/Movies-MAX.html">
+        <span>Movies MAX</span>
+      </a>
+    </div>
+    <div class="icon-container">
+      <div class="icon"></div>
+      <a href="tvlist/Movies5.html">
+        <span>Movies5</span>
+      </a>
+    </div>
+    <div class="icon-container">
+      <div class="icon"></div>
+      <a href="tvlist/Moviesiraq.html">
+        <span>Movies</span>
+      </a>
+    </div>
+    <div class="icon-container">
+      <div class="icon"></div>
+      <a href="tvlist/bollywood.html">
+        <span>Movies</span>
+      </a>
+    </div>
+    <div class="icon-container">
+      <div class="icon"></div>
+      <a href="tvlist/Movies.html">
+        <span>Movies</span>
+      </a>
+    </div>
+    <div class="icon-container">
+      <div class="icon"></div>
+      <a href="tvlist/Moviesmasr.html">
+        <span>Entertainm</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
