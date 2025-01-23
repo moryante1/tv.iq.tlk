@@ -9,14 +9,7 @@ const ASSETS = [
     '/index5.html',
     '/index6.html',
     '/index7.html',
-    '/service/animation/inex0.mp4',
-    '/service/animation/inex1.mp4',
-    '/service/animation/inex2.mp4',
-    '/service/animation/inex3.mp4',
-    '/service/animation/inex4.mp4',
-    '/service/animation/inex5.mp4',
-    '/service/animation/inex6.mp4',
-    '/service/animation/inex7.mp4',
+    // تمت إزالة المسارات التي تبدأ ب /service
 ];
 
 // تثبيت Service Worker
