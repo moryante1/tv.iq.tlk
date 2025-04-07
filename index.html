@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -396,7 +395,13 @@
         const channels = [
             { name: "beIN SPORTS 1 HD", url: "https://wo.cma.footballii.ir/hls2/b1_src.m3u8", icon: "icons/v1.png" },
             { name: "beIN SPORTS 2 HD", url: "https://stream.sainaertebat.com/hls2/bein2.m3u8", icon: "icons/v1.png" },
-            { name: "beIN SPORTS 3 HD", url: "https://live.eighty-eight.tv:8880/BS3A/tracks-v1a1/mono.ts.m3u8?amp%3Bremote=no_check_ip&token=9a87cd38ce57b9309bfb82833ac30ffab752bd8c-d405284bcf2221303760b3b9891f4a78-1744029790-1744026190", icon: "icons/v1.png" },
+            { 
+                name: "beIN SPORTS 3 HD", 
+                url: "https://live.eighty-eight.tv:8880/BS3B/tracks-v1/index.fmp4.m3u8?amp%3Bremote=no_check_ip&token=185324797ba957d7beb78eef5d8c8c1309b94fbf-cc7d40dc8f15faf2a70c96d9820ab584-1744033822-1744030222", 
+                token: "185324797ba957d7beb78eef5d8c8c1309b94fbf-cc7d40dc8f15faf2a70c96d9820ab584-1744033822-1744030222",
+                icon: "icons/v1.png",
+                tokenRefreshInterval: 3600000 // 1 hour in milliseconds
+            },
             { name: "العربية الاخبارية", url: "https://shls-live-enc.edgenextcdn.net/out/v1/f5f319206ed740f9a831f2097c2ead23/index_37.m3u8", icon: "icons/v1.png" },
             { name: "ام بي سي4", url: "https://mbc4-prod-dub-enc.edgenextcdn.net/out/v1/c08681f81775496ab4afa2bac7ae7638/index_2.m3u8", icon: "icons/v2.png" },
             { name: "ام بي سي العراق", url: "https://iraq-prod-dub-enc.edgenextcdn.net/out/v1/c9bf1e87ea66478bb20bc5c93c9d41ea/index_3_22747127.ts", icon: "icons/v3.png" },
@@ -415,6 +420,7 @@
             { name: "قناة الكبير أوي", url: "https://shls-live-enc.edgenextcdn.net/out/v1/5f5de4f9efe24f758f1364dde5e2a45c/index_3.m3u8", icon: "icons/v16.png" },
             { name: "اقناة واي فاي", url: "https://shls-live-enc.edgenextcdn.net/out/v1/22a1fb00da8a4b1fb15cbd70b8b59856/index_3.m3u8", icon: "icons/v17.png" },
         ];
+
 
         // تحميل القنوات
         function loadChannels() {
