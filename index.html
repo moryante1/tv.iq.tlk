@@ -361,7 +361,6 @@
                     <option value="720">720p</option>
                     <option value="1080">1080p</option>
                 </select>
-                <!-- تمت إزالة زر Theater Mode -->
                 <button id="fullscreen-btn"><i class="fas fa-expand"></i></button>
             </div>
         </div>
@@ -397,9 +396,10 @@
             { name: "beIN SPORTS 2 HD", url: "https://stream.sainaertebat.com/hls2/bein2.m3u8", icon: "icons/v1.png" },
             { 
                 name: "beIN SPORTS 3 HD", 
-                url: "https://live.eighty-eight.tv:8880/BS3B/tracks-v1/index.fmp4.m3u8?amp%3Bremote=no_check_ip&token=185324797ba957d7beb78eef5d8c8c1309b94fbf-cc7d40dc8f15faf2a70c96d9820ab584-1744033822-1744030222", 
+                url: "https://live.eighty-eight.tv:8880/BS3B/index.m3u8?token=185324797ba957d7beb78eef5d8c8c1309b94fbf-cc7d40dc8f15faf2a70c96d9820ab584-1744033822-1744030222", 
                 token: "185324797ba957d7beb78eef5d8c8c1309b94fbf-cc7d40dc8f15faf2a70c96d9820ab584-1744033822-1744030222",
                 icon: "icons/v1.png",
+                requiresSpecialHandling: true,
                 tokenRefreshInterval: 3600000 // 1 hour in milliseconds
             },
             { name: "العربية الاخبارية", url: "https://shls-live-enc.edgenextcdn.net/out/v1/f5f319206ed740f9a831f2097c2ead23/index_37.m3u8", icon: "icons/v1.png" },
@@ -418,9 +418,8 @@
             { name: "قناة رامز", url: "https://shls-live-enc.edgenextcdn.net/out/v1/0ef83323c0374a1187c182645db2a45f/index_2.m3u8", icon: "icons/v14.png" },
             { name: "الصدمة", url: "https://shls-live-enc.edgenextcdn.net/out/v1/976f5db2766347f8963f32eebfa8ed10/index_13.m3u8", icon: "icons/v15.png" },
             { name: "قناة الكبير أوي", url: "https://shls-live-enc.edgenextcdn.net/out/v1/5f5de4f9efe24f758f1364dde5e2a45c/index_3.m3u8", icon: "icons/v16.png" },
-            { name: "قناة واي فاي", url: "https://shls-live-enc.edgenextcdn.net/out/v1/22a1fb00da8a4b1fb15cbd70b8b59856/index_3.m3u8", icon: "icons/v17.png" },
+            { name: "اقناة واي فاي", url: "https://shls-live-enc.edgenextcdn.net/out/v1/22a1fb00da8a4b1fb15cbd70b8b59856/index_3.m3u8", icon: "icons/v17.png" },
         ];
-
 
         // تحميل القنوات
         function loadChannels() {
@@ -432,21 +431,83 @@
                 icon.classList.add('channel-icon');
                 li.appendChild(icon);
                 li.appendChild(document.createTextNode(channel.name));
-                li.addEventListener('click', () => playChannel(channel.url));
+                li.addEventListener('click', () => playChannel(channel));
                 channelList.appendChild(li);
             });
         }
 
-        // تشغيل القناة
-        function playChannel(url) {
+        // تشغيل القناة - تم تعديل هذه الدالة للتعامل مع كائن القناة بالكامل
+        function playChannel(channel) {
             if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource(url);
+                if (window.currentHls) {
+                    window.currentHls.destroy();
+                }
+                
+                const hls = new Hls({
+                    debug: false,
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 90
+                });
+                
+                window.currentHls = hls;
+                
+                // إعدادات خاصة لقناة بي إن سبورت 3
+                if (channel.requiresSpecialHandling) {
+                    console.log("Using special handling for channel:", channel.name);
+                    // تحميل مباشر للمؤشر بدلاً من استخدام مسار المقطع
+                    hls.loadSource(channel.url);
+                    
+                    // إضافة معالجات أحداث للتشخيص
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        console.log("HLS Error:", data.type, data.details, data);
+                        if (data.fatal) {
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    console.log("Fatal network error, trying to recover");
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    console.log("Fatal media error, trying to recover");
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    console.log("Fatal error, cannot recover");
+                                    hls.destroy();
+                                    break;
+                            }
+                        }
+                    });
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        console.log("Manifest loaded, found " + hls.levels.length + " quality level(s)");
+                        video.play();
+                    });
+                    
+                    hls.on(Hls.Events.LEVEL_LOADED, function(event, data) {
+                        console.log("Level loaded:", data.details);
+                    });
+                } else {
+                    // معالجة عادية للقنوات الأخرى
+                    hls.loadSource(channel.url);
+                }
+                
                 hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    video.play().catch(error => {
+                        console.log("Play error:", error);
+                        // محاولة التشغيل بعد تفاعل المستخدم
+                        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    });
+                });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = url;
-                video.play();
+                // دعم أصلي لـ HLS (Safari)
+                video.src = channel.url;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play();
+                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                });
             } else {
                 alert("المتصفح الخاص بك لا يدعم تشغيل هذا النوع من الفيديو.");
             }
@@ -476,7 +537,16 @@
         // التحكم في الصوت
         volumeSlider.addEventListener('input', () => {
             video.volume = volumeSlider.value;
+            // حفظ مستوى الصوت في تخزين المتصفح
+            localStorage.setItem('iptv-volume', volumeSlider.value);
         });
+
+        // استعادة مستوى الصوت المحفوظ
+        const savedVolume = localStorage.getItem('iptv-volume');
+        if (savedVolume !== null) {
+            volumeSlider.value = savedVolume;
+            video.volume = savedVolume;
+        }
 
         // تحديث الوقت
         video.addEventListener('timeupdate', () => {
@@ -494,22 +564,77 @@
             speedBtn.textContent = `${speeds[currentSpeedIndex]}x`;
         });
 
-        // تغيير الجودة (وهمي في هذا المثال)
+        // تغيير الجودة
         qualitySelector.addEventListener('change', () => {
-            alert(`تم تغيير الجودة إلى ${qualitySelector.value}`);
+            if (window.currentHls) {
+                const level = qualitySelector.value === 'auto' ? -1 : parseInt(qualitySelector.value);
+                if (level === -1) {
+                    window.currentHls.currentLevel = -1; // تلقائي
+                } else {
+                    // محاولة العثور على أقرب مستوى جودة للقيمة المختارة
+                    const selectedHeight = parseInt(qualitySelector.value);
+                    let bestMatch = 0;
+                    let minDiff = Number.MAX_VALUE;
+                    
+                    for (let i = 0; i < window.currentHls.levels.length; i++) {
+                        const levelHeight = window.currentHls.levels[i].height;
+                        const diff = Math.abs(levelHeight - selectedHeight);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            bestMatch = i;
+                        }
+                    }
+                    
+                    window.currentHls.currentLevel = bestMatch;
+                }
+            }
         });
 
         // ملء الشاشة
         fullscreenBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
-                video.requestFullscreen();
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen();
+                } else if (video.msRequestFullscreen) {
+                    video.msRequestFullscreen();
+                }
             } else {
-                document.exitFullscreen();
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        });
+
+        // إخفاء عناصر التحكم عند عدم النشاط
+        let controlsTimeout;
+        const videoContainer = document.querySelector('.video-player');
+        
+        videoContainer.addEventListener('mousemove', () => {
+            videoControls.classList.remove('hidden');
+            clearTimeout(controlsTimeout);
+            
+            controlsTimeout = setTimeout(() => {
+                if (!video.paused) {
+                    videoControls.classList.add('hidden');
+                }
+            }, 3000);
+        });
+
+        videoContainer.addEventListener('mouseleave', () => {
+            if (!video.paused) {
+                videoControls.classList.add('hidden');
             }
         });
 
         // تنسيق الوقت
         function formatTime(time) {
+            if (isNaN(time) || time === Infinity) return "00:00";
             const minutes = Math.floor(time / 60);
             const seconds = Math.floor(time % 60);
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
