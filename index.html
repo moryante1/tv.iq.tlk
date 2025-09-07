@@ -1,0 +1,639 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة بيانات الوكلاء</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-container {
+            margin-bottom: 20px;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+        .action-buttons button {
+            margin: 0 5px;
+        }
+        #addButton, #updateButton {
+            display: inline-block;
+        }
+        #updateButton {
+            display: none;
+            background-color: #ff9800;
+        }
+        #updateButton:hover {
+            background-color: #e68900;
+        }
+        #importButton {
+            background-color: #2196F3;
+        }
+        #importButton:hover {
+            background-color: #1976D2;
+        }
+        #printButton {
+            background-color: #9c27b0;
+        }
+        #printButton:hover {
+            background-color: #7b1fa2;
+        }
+        .report-button {
+            background-color: #f44336;
+            margin: 5px;
+        }
+        .report-button:hover {
+            background-color: #d32f2f;
+        }
+        .total-debt {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: left;
+            color: #333;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        #searchInput {
+            width: 300px;
+        }
+        @media print {
+            .form-container, .error, #printButton, .action-buttons, .report-button, .search-container {
+                display: none;
+            }
+            .container {
+                box-shadow: none;
+                margin: 0;
+                padding: 0;
+            }
+            .total-debt {
+                margin-top: 10px;
+                page-break-before: avoid;
+            }
+            table {
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>إدارة بيانات الوكلاء</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="ابحث عن وكيل بالاسم" oninput="searchAgents()">
+        </div>
+        <div class="form-container">
+            <input type="text" id="agentName" placeholder="اسم الوكيل">
+            <input type="date" id="date" placeholder="تاريخ">
+            <input type="number" id="totalAmount" placeholder="إجمالي المبلغ المطلوب">
+            <input type="number" id="paidAmount" placeholder="المبلغ المسدد">
+            <input type="number" id="previousMonthDebt" placeholder="ديون الشهر السابق">
+            <input type="number" id="allowedDebtPercentage" placeholder="نسبة الديون المسموحة (%)">
+            <button id="addButton" onclick="addAgent()">إضافة وكيل</button>
+            <button id="updateButton" onclick="updateAgent()">تحديث الوكيل</button>
+            <button onclick="saveToJson()">حفظ البيانات</button>
+            <input type="file" id="importFile" accept=".json" onchange="importFromJson(event)">
+            <button id="importButton" onclick="document.getElementById('importFile').click()">استيراد نسخة احتياطية</button>
+            <button id="printButton" onclick="printStatement()">طباعة كشف الحسابات</button>
+            <button class="report-button" onclick="generateTotalReport()">تقرير إجمالي المبالغ</button>
+            <button class="report-button" onclick="generateDetailsReport()">تقرير تفاصيل كل مبالغ</button>
+            <button class="report-button" onclick="generateMonthlyReport()">تقرير إجمالي المبالغ الشهرية</button>
+            <button class="report-button" onclick="generateMovementReport()">تقرير حركة الحسابات</button>
+        </div>
+        <div id="error" class="error"></div>
+        <table id="agentsTable">
+            <thead>
+                <tr>
+                    <th>اسم الوكيل</th>
+                    <th>تاريخ</th>
+                    <th>إجمالي المبلغ المطلوب</th>
+                    <th>المبلغ المسدد</th>
+                    <th>المتبقي على الوكيل</th>
+                    <th>ديون الشهر السابق</th>
+                    <th>المتبقي من الشهر السابق</th>
+                    <th>نسبة الديون المسموحة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+        <div id="totalDebt" class="total-debt"></div>
+    </div>
+
+    <script>
+        let agents = [];
+        let logs = [];
+        let editingAgentId = null;
+
+        // تحميل البيانات من localStorage عند فتح الصفحة
+        function loadAgents() {
+            const savedData = localStorage.getItem('agents');
+            if (savedData) {
+                agents = JSON.parse(savedData);
+            }
+            const savedLogs = localStorage.getItem('logs');
+            if (savedLogs) {
+                logs = JSON.parse(savedLogs);
+            }
+            renderTable();
+        }
+
+        // حفظ البيانات في localStorage
+        function saveAgents() {
+            localStorage.setItem('agents', JSON.stringify(agents));
+            localStorage.setItem('logs', JSON.stringify(logs));
+        }
+
+        // حساب مجموع الديون الكلي
+        function calculateTotalDebt(filteredAgents) {
+            const totalDebt = filteredAgents.reduce((sum, agent) => {
+                return sum + (agent.remainingAmount + agent.remainingPreviousMonth);
+            }, 0);
+            return totalDebt.toFixed(2);
+        }
+
+        // إضافة سجل
+        function addLog(action, details) {
+            const log = {
+                timestamp: new Date().toLocaleString('ar'),
+                action,
+                details
+            };
+            logs.push(log);
+            saveAgents();
+        }
+
+        // البحث عن الوكلاء
+        function searchAgents() {
+            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+            const filteredAgents = agents.filter(agent => 
+                agent.agentName.toLowerCase().includes(searchTerm)
+            );
+            renderTable(filteredAgents);
+        }
+
+        function addAgent() {
+            const agentName = document.getElementById('agentName').value;
+            const date = document.getElementById('date').value;
+            const totalAmount = parseFloat(document.getElementById('totalAmount').value) || 0;
+            const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
+            const previousMonthDebt = parseFloat(document.getElementById('previousMonthDebt').value) || 0;
+            const allowedDebtPercentage = parseFloat(document.getElementById('allowedDebtPercentage').value) || 0;
+
+            if (!agentName || !date || totalAmount < 0 || paidAmount < 0 || previousMonthDebt < 0 || allowedDebtPercentage < 0) {
+                document.getElementById('error').innerText = 'يرجى إدخال بيانات صحيحة';
+                return;
+            }
+
+            const remainingAmount = totalAmount - paidAmount;
+            const remainingPreviousMonth = previousMonthDebt > 0 ? previousMonthDebt - paidAmount : 0;
+
+            const agent = {
+                id: Date.now(),
+                agentName,
+                date,
+                totalAmount,
+                paidAmount,
+                remainingAmount,
+                previousMonthDebt,
+                remainingPreviousMonth,
+                allowedDebtPercentage
+            };
+
+            agents.push(agent);
+            addLog('إضافة وكيل', `اسم: ${agentName}, تاريخ: ${date}, إجمالي: ${totalAmount}`);
+            saveAgents();
+            renderTable();
+            clearInputs();
+            document.getElementById('error').innerText = '';
+        }
+
+        function editAgent(id) {
+            const agent = agents.find(agent => agent.id === id);
+            if (agent) {
+                editingAgentId = id;
+                document.getElementById('agentName').value = agent.agentName;
+                document.getElementById('date').value = agent.date;
+                document.getElementById('totalAmount').value = agent.totalAmount;
+                document.getElementById('paidAmount').value = agent.paidAmount;
+                document.getElementById('previousMonthDebt').value = agent.previousMonthDebt;
+                document.getElementById('allowedDebtPercentage').value = agent.allowedDebtPercentage;
+                document.getElementById('addButton').style.display = 'none';
+                document.getElementById('updateButton').style.display = 'inline-block';
+                document.getElementById('error').innerText = '';
+            }
+        }
+
+        function updateAgent() {
+            if (editingAgentId === null) return;
+
+            const agentName = document.getElementById('agentName').value;
+            const date = document.getElementById('date').value;
+            const totalAmount = parseFloat(document.getElementById('totalAmount').value) || 0;
+            const paidAmount = parseFloat(document.getElementById('paidAmount').value) || 0;
+            const previousMonthDebt = parseFloat(document.getElementById('previousMonthDebt').value) || 0;
+            const allowedDebtPercentage = parseFloat(document.getElementById('allowedDebtPercentage').value) || 0;
+
+            if (!agentName || !date || totalAmount < 0 || paidAmount < 0 || previousMonthDebt < 0 || allowedDebtPercentage < 0) {
+                document.getElementById('error').innerText = 'يرجى إدخال بيانات صحيحة';
+                return;
+            }
+
+            const remainingAmount = totalAmount - paidAmount;
+            const remainingPreviousMonth = previousMonthDebt > 0 ? previousMonthDebt - paidAmount : 0;
+
+            agents = agents.map(agent => {
+                if (agent.id === editingAgentId) {
+                    addLog('تعديل وكيل', `اسم: ${agentName}, تاريخ: ${date}, إجمالي: ${totalAmount}`);
+                    return {
+                        id: agent.id,
+                        agentName,
+                        date,
+                        totalAmount,
+                        paidAmount,
+                        remainingAmount,
+                        previousMonthDebt,
+                        remainingPreviousMonth,
+                        allowedDebtPercentage
+                    };
+                }
+                return agent;
+            });
+
+            saveAgents();
+            renderTable();
+            clearInputs();
+            editingAgentId = null;
+            document.getElementById('addButton').style.display = 'inline-block';
+            document.getElementById('updateButton').style.display = 'none';
+            document.getElementById('error').innerText = '';
+        }
+
+        function deleteAgent(id) {
+            const agent = agents.find(agent => agent.id === id);
+            if (agent) {
+                addLog('حذف وكيل', `اسم: ${agent.agentName}, تاريخ: ${agent.date}`);
+            }
+            agents = agents.filter(agent => agent.id !== id);
+            saveAgents();
+            renderTable();
+        }
+
+        function renderTable(filteredAgents = agents) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            filteredAgents.forEach(agent => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${agent.agentName}</td>
+                    <td>${agent.date}</td>
+                    <td>${agent.totalAmount.toFixed(2)}</td>
+                    <td>${agent.paidAmount.toFixed(2)}</td>
+                    <td>${agent.remainingAmount.toFixed(2)}</td>
+                    <td>${agent.previousMonthDebt.toFixed(2)}</td>
+                    <td>${agent.remainingPreviousMonth.toFixed(2)}</td>
+                    <td>${agent.allowedDebtPercentage}%</td>
+                    <td class="action-buttons">
+                        <button onclick="editAgent(${agent.id})">تعديل</button>
+                        <button onclick="deleteAgent(${agent.id})">حذف</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // عرض مجموع الديون الكلي بناءً على الوكلاء المصفاة
+            const totalDebtElement = document.getElementById('totalDebt');
+            totalDebtElement.innerText = `مجموع الديون الكلي: ${calculateTotalDebt(filteredAgents)}`;
+        }
+
+        function clearInputs() {
+            document.getElementById('agentName').value = '';
+            document.getElementById('date').value = '';
+            document.getElementById('totalAmount').value = '';
+            document.getElementById('paidAmount').value = '';
+            document.getElementById('previousMonthDebt').value = '';
+            document.getElementById('allowedDebtPercentage').value = '';
+            document.getElementById('importFile').value = '';
+            document.getElementById('searchInput').value = '';
+        }
+
+        function saveToJson() {
+            const dataStr = JSON.stringify({agents, logs}, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'agents_data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importFromJson(event) {
+            const file = event.target.files[0];
+            if (file && file.type === 'application/json') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (importedData.agents && Array.isArray(importedData.agents) && importedData.agents.every(agent => 
+                            agent.id && agent.agentName && agent.date && 
+                            typeof agent.totalAmount === 'number' && 
+                            typeof agent.paidAmount === 'number' && 
+                            typeof agent.remainingAmount === 'number' && 
+                            typeof agent.previousMonthDebt === 'number' && 
+                            typeof agent.remainingPreviousMonth === 'number' && 
+                            typeof agent.allowedDebtPercentage === 'number'
+                        ) && importedData.logs && Array.isArray(importedData.logs)) {
+                            agents = importedData.agents;
+                            logs = importedData.logs;
+                            saveAgents();
+                            renderTable();
+                            document.getElementById('error').innerText = 'تم استيراد البيانات بنجاح';
+                        } else {
+                            document.getElementById('error').innerText = 'ملف JSON غير صالح';
+                        }
+                    } catch (error) {
+                        document.getElementById('error').innerText = 'خطأ في تحميل الملف: ' + error.message;
+                    }
+                };
+                reader.readAsText(file);
+            } else {
+                document.getElementById('error').innerText = 'يرجى اختيار ملف JSON صالح';
+            }
+        }
+
+        function printStatement() {
+            window.print();
+        }
+
+        // توليد تقرير إجمالي المبالغ
+        function generateTotalReport() {
+            const totals = agents.reduce((acc, agent) => {
+                acc.totalAmount += agent.totalAmount;
+                acc.paidAmount += agent.paidAmount;
+                acc.remainingAmount += agent.remainingAmount;
+                acc.previousMonthDebt += agent.previousMonthDebt;
+                acc.remainingPreviousMonth += agent.remainingPreviousMonth;
+                return acc;
+            }, { totalAmount: 0, paidAmount: 0, remainingAmount: 0, previousMonthDebt: 0, remainingPreviousMonth: 0 });
+
+            const reportHtml = `
+                <html dir="rtl">
+                <head><title>تقرير إجمالي المبالغ</title></head>
+                <body>
+                    <h1>تقرير إجمالي المبالغ</h1>
+                    <table border="1">
+                        <tr><th>إجمالي المبلغ المطلوب</th><td>${totals.totalAmount.toFixed(2)}</td></tr>
+                        <tr><th>المبلغ المسدد</th><td>${totals.paidAmount.toFixed(2)}</td></tr>
+                        <tr><th>المتبقي على الوكلاء</th><td>${totals.remainingAmount.toFixed(2)}</td></tr>
+                        <tr><th>ديون الشهر السابق</th><td>${totals.previousMonthDebt.toFixed(2)}</td></tr>
+                        <tr><th>المتبقي من الشهر السابق</th><td>${totals.remainingPreviousMonth.toFixed(2)}</td></tr>
+                        <tr><th>مجموع الديون الكلي</th><td>${(totals.remainingAmount + totals.remainingPreviousMonth).toFixed(2)}</td></tr>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(reportHtml);
+            reportWindow.document.close();
+            reportWindow.print();
+        }
+
+        // توليد تقرير تفاصيل كل مبالغ
+        function generateDetailsReport() {
+            let tableRows = '';
+            agents.forEach(agent => {
+                tableRows += `
+                    <tr>
+                        <td>${agent.agentName}</td>
+                        <td>${agent.date}</td>
+                        <td>${agent.totalAmount.toFixed(2)}</td>
+                        <td>${agent.paidAmount.toFixed(2)}</td>
+                        <td>${agent.remainingAmount.toFixed(2)}</td>
+                        <td>${agent.previousMonthDebt.toFixed(2)}</td>
+                        <td>${agent.remainingPreviousMonth.toFixed(2)}</td>
+                        <td>${agent.allowedDebtPercentage}%</td>
+                    </tr>
+                `;
+            });
+
+            const reportHtml = `
+                <html dir="rtl">
+                <head><title>تقرير تفاصيل كل مبالغ</title></head>
+                <body>
+                    <h1>تقرير تفاصيل كل مبالغ</h1>
+                    <table border="1">
+                        <thead>
+                            <tr>
+                                <th>اسم الوكيل</th>
+                                <th>تاريخ</th>
+                                <th>إجمالي المبلغ المطلوب</th>
+                                <th>المبلغ المسدد</th>
+                                <th>المتبقي على الوكيل</th>
+                                <th>ديون الشهر السابق</th>
+                                <th>المتبقي من الشهر السابق</th>
+                                <th>نسبة الديون المسموحة</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(reportHtml);
+            reportWindow.document.close();
+            reportWindow.print();
+        }
+
+        // توليد تقرير إجمالي المبالغ الشهرية
+        function generateMonthlyReport() {
+            const monthlyTotals = {};
+            agents.forEach(agent => {
+                const dateObj = new Date(agent.date);
+                const monthKey = `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}`;
+                if (!monthlyTotals[monthKey]) {
+                    monthlyTotals[monthKey] = { totalAmount: 0, paidAmount: 0, remainingAmount: 0, previousMonthDebt: 0, remainingPreviousMonth: 0 };
+                }
+                monthlyTotals[monthKey].totalAmount += agent.totalAmount;
+                monthlyTotals[monthKey].paidAmount += agent.paidAmount;
+                monthlyTotals[monthKey].remainingAmount += agent.remainingAmount;
+                monthlyTotals[monthKey].previousMonthDebt += agent.previousMonthDebt;
+                monthlyTotals[monthKey].remainingPreviousMonth += agent.remainingPreviousMonth;
+            });
+
+            let tableRows = '';
+            for (const month in monthlyTotals) {
+                const totals = monthlyTotals[month];
+                tableRows += `
+                    <tr>
+                        <td>${month}</td>
+                        <td>${totals.totalAmount.toFixed(2)}</td>
+                        <td>${totals.paidAmount.toFixed(2)}</td>
+                        <td>${totals.remainingAmount.toFixed(2)}</td>
+                        <td>${totals.previousMonthDebt.toFixed(2)}</td>
+                        <td>${totals.remainingPreviousMonth.toFixed(2)}</td>
+                        <td>${(totals.remainingAmount + totals.remainingPreviousMonth).toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+
+            const reportHtml = `
+                <html dir="rtl">
+                <head><title>تقرير إجمالي المبالغ الشهرية</title></head>
+                <body>
+                    <h1>تقرير إجمالي المبالغ الشهرية</h1>
+                    <table border="1">
+                        <thead>
+                            <tr>
+                                <th>الشهر</th>
+                                <th>إجمالي المبلغ المطلوب</th>
+                                <th>المبلغ المسدد</th>
+                                <th>المتبقي على الوكلاء</th>
+                                <th>ديون الشهر السابق</th>
+                                <th>المتبقي من الشهر السابق</th>
+                                <th>مجموع الديون</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(reportHtml);
+            reportWindow.document.close();
+            reportWindow.print();
+        }
+
+        // توليد تقرير حركة الحسابات
+        function generateMovementReport() {
+            let tableRows = '';
+            logs.forEach(log => {
+                tableRows += `
+                    <tr>
+                        <td>${log.timestamp}</td>
+                        <td>${log.action}</td>
+                        <td>${log.details}</td>
+                    </tr>
+                `;
+            });
+
+            const reportHtml = `
+                <html dir="rtl">
+                <head><title>تقرير حركة الحسابات</title></head>
+                <body>
+                    <h1>تقرير حركة الحسابات</h1>
+                    <table border="1">
+                        <thead>
+                            <tr>
+                                <th>التاريخ والوقت</th>
+                                <th>الإجراء</th>
+                                <th>التفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(reportHtml);
+            reportWindow.document.close();
+            reportWindow.print();
+        }
+
+        // تحميل البيانات عند بدء التشغيل
+        window.onload = loadAgents;
+    </script>
+</body>
+</html>
