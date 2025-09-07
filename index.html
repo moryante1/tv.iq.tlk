@@ -43,120 +43,333 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة بيانات الوكلاء</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
+            font-family: 'Tajawal', Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #f0f2f5, #e0e7ff);
+            color: #1f2937;
+            direction: rtl;
         }
+
         h1 {
             text-align: center;
-            color: #333;
+            color: #1e3a8a;
+            font-size: 1.8rem;
+            margin: 1rem 0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
+
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
+        .table-wrapper {
+            overflow-x: auto; /* Enable horizontal scrolling on small screens */
+            margin-top: 1rem;
+        }
+
         table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            min-width: 600px; /* Ensure table doesn't collapse too much */
         }
+
         th, td {
-            border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+            min-width: 80px; /* Prevent columns from becoming too narrow */
         }
+
         th {
-            background-color: #4CAF50;
-            color: white;
+            background: linear-gradient(to bottom, #3b82f6, #2563eb);
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
         }
+
+        td {
+            background: #ffffff;
+            transition: background-color 0.3s ease;
+        }
+
+        tr:hover td {
+            background: #f9fafb;
+        }
+
         input, button {
-            padding: 8px;
-            margin: 5px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
+            padding: 8px 12px;
+            margin: 4px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            font-family: 'Tajawal', sans-serif;
+            box-sizing: border-box;
         }
+
+        input {
+            background: #f9fafb;
+            color: #1f2937;
+            width: 100%;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
         button {
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
+            background: #3b82f6;
+            color: #ffffff;
             border: none;
+            cursor: pointer;
+            font-weight: 500;
+            min-height: 44px; /* Touch-friendly size */
         }
+
         button:hover {
-            background-color: #45a049;
+            background: #2563eb;
+            transform: translateY(-1px);
         }
+
+        button:active {
+            transform: translateY(0);
+        }
+
         .form-container {
-            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+            margin-bottom: 1rem;
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
+
         .error {
-            color: red;
-            font-size: 14px;
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin: 0.5rem 0;
+            text-align: center;
         }
+
         .action-buttons button {
-            margin: 0 5px;
+            margin: 0 4px;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            min-height: 36px;
         }
-        #addButton, #updateButton {
-            display: inline-block;
+
+        #addButton {
+            background: #22c55e;
         }
+
+        #addButton:hover {
+            background: #16a34a;
+        }
+
         #updateButton {
             display: none;
-            background-color: #ff9800;
+            background: #f59e0b;
         }
+
         #updateButton:hover {
-            background-color: #e68900;
+            background: #d97706;
         }
+
         #importButton {
-            background-color: #2196F3;
+            background: #8b5cf6;
         }
+
         #importButton:hover {
-            background-color: #1976D2;
+            background: #7c3aed;
         }
+
         #printButton {
-            background-color: #9c27b0;
+            background: #ec4899;
         }
+
         #printButton:hover {
-            background-color: #7b1fa2;
+            background: #db2777;
         }
+
         .report-button {
-            background-color: #f44336;
-            margin: 5px;
+            background: #ef4444;
         }
+
         .report-button:hover {
-            background-color: #d32f2f;
+            background: #dc2626;
         }
+
         .total-debt {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e3a8a;
             text-align: left;
-            color: #333;
         }
+
         .search-container {
-            margin-bottom: 20px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
         }
+
         #searchInput {
-            width: 300px;
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 0.95rem;
         }
+
+        #importFile {
+            display: none;
+        }
+
+        /* Extra small screens (phones, ≤480px) */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                padding: 0.5rem;
+            }
+
+            .form-container {
+                grid-template-columns: 1fr;
+                gap: 6px;
+                padding: 0.75rem;
+            }
+
+            input, button {
+                padding: 6px 10px;
+                font-size: 0.9rem;
+                margin: 3px;
+            }
+
+            .action-buttons button {
+                padding: 5px 8px;
+                font-size: 0.75rem;
+                min-height: 32px;
+            }
+
+            th, td {
+                padding: 6px;
+                font-size: 0.75rem;
+                min-width: 60px;
+            }
+
+            .search-container {
+                padding: 0 0.5rem;
+            }
+
+            #searchInput {
+                max-width: 100%;
+            }
+
+            /* Hide report buttons on very small screens to reduce clutter */
+            .report-button {
+                display: none;
+            }
+        }
+
+        /* Medium screens (tablets, ≤768px) */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.75rem;
+            }
+
+            .form-container {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 8px;
+                min-width: 70px;
+            }
+
+            .action-buttons button {
+                padding: 5px 8px;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Print Styles */
         @media print {
+            body {
+                background: #ffffff;
+                padding: 0;
+            }
+
             .form-container, .error, #printButton, .action-buttons, .report-button, .search-container {
                 display: none;
             }
+
             .container {
                 box-shadow: none;
                 margin: 0;
                 padding: 0;
+                background: none;
+                border: none;
             }
+
             .total-debt {
-                margin-top: 10px;
+                margin-top: 1rem;
                 page-break-before: avoid;
+                color: #000000;
             }
+
+            .table-wrapper {
+                overflow-x: visible;
+            }
+
             table {
                 margin-top: 0;
+                box-shadow: none;
+                min-width: auto;
+            }
+
+            th {
+                background: #4b5563;
+            }
+
+            th, td {
+                border: 1px solid #000000;
+                padding: 6px;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -186,22 +399,24 @@
             <button class="report-button" onclick="generateMovementReport()">تقرير حركة الحسابات</button>
         </div>
         <div id="error" class="error"></div>
-        <table id="agentsTable">
-            <thead>
-                <tr>
-                    <th>اسم الوكيل</th>
-                    <th>تاريخ</th>
-                    <th>إجمالي المبلغ المطلوب</th>
-                    <th>المبلغ المسدد</th>
-                    <th>المتبقي على الوكيل</th>
-                    <th>ديون الشهر السابق</th>
-                    <th>المتبقي من الشهر السابق</th>
-                    <th>نسبة الديون المسموحة</th>
-                    <th>إجراءات</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+        <div class="table-wrapper">
+            <table id="agentsTable">
+                <thead>
+                    <tr>
+                        <th>اسم الوكيل</th>
+                        <th>تاريخ</th>
+                        <th>إجمالي المبلغ المطلوب</th>
+                        <th>المبلغ المسدد</th>
+                        <th>المتبقي على الوكيل</th>
+                        <th>ديون الشهر السابق</th>
+                        <th>المتبقي من الشهر السابق</th>
+                        <th>نسبة الديون المسموحة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
         <div id="totalDebt" class="total-debt"></div>
     </div>
 
@@ -210,7 +425,6 @@
         let logs = [];
         let editingAgentId = null;
 
-        // تحميل البيانات من localStorage عند فتح الصفحة
         function loadAgents() {
             const savedData = localStorage.getItem('agents');
             if (savedData) {
@@ -223,13 +437,11 @@
             renderTable();
         }
 
-        // حفظ البيانات في localStorage
         function saveAgents() {
             localStorage.setItem('agents', JSON.stringify(agents));
             localStorage.setItem('logs', JSON.stringify(logs));
         }
 
-        // حساب مجموع الديون الكلي
         function calculateTotalDebt(filteredAgents) {
             const totalDebt = filteredAgents.reduce((sum, agent) => {
                 return sum + (agent.remainingAmount + agent.remainingPreviousMonth);
@@ -237,7 +449,6 @@
             return totalDebt.toFixed(2);
         }
 
-        // إضافة سجل
         function addLog(action, details) {
             const log = {
                 timestamp: new Date().toLocaleString('ar'),
@@ -248,7 +459,6 @@
             saveAgents();
         }
 
-        // البحث عن الوكلاء
         function searchAgents() {
             const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
             const filteredAgents = agents.filter(agent => 
@@ -265,13 +475,13 @@
             const previousMonthDebt = parseFloat(document.getElementById('previousMonthDebt').value) || 0;
             const allowedDebtPercentage = parseFloat(document.getElementById('allowedDebtPercentage').value) || 0;
 
-            if (!agentName || !date || totalAmount < 0 || paidAmount < 0 || previousMonthDebt < 0 || allowedDebtPercentage < 0) {
-                document.getElementById('error').innerText = 'يرجى إدخال بيانات صحيحة';
+            if (!agentName || !date || totalAmount < 0 || paidAmount < 0 || previousMonthDebt < 0 || allowedDebtPercentage < 0 || allowedDebtPercentage > 100) {
+                document.getElementById('error').innerText = 'يرجى إدخال بيانات صحيحة (نسبة الديون المسموحة يجب ألا تتجاوز 100%)';
                 return;
             }
 
             const remainingAmount = totalAmount - paidAmount;
-            const remainingPreviousMonth = previousMonthDebt > 0 ? previousMonthDebt - paidAmount : 0;
+            const remainingPreviousMonth = previousMonthDebt > 0 ? Math.max(0, previousMonthDebt - paidAmount) : 0;
 
             const agent = {
                 id: Date.now(),
@@ -319,13 +529,13 @@
             const previousMonthDebt = parseFloat(document.getElementById('previousMonthDebt').value) || 0;
             const allowedDebtPercentage = parseFloat(document.getElementById('allowedDebtPercentage').value) || 0;
 
-            if (!agentName || !date || totalAmount < 0 || paidAmount < 0 || previousMonthDebt < 0 || allowedDebtPercentage < 0) {
-                document.getElementById('error').innerText = 'يرجى إدخال بيانات صحيحة';
+            if (!agentName || !date || totalAmount < 0 || paidAmount < 0 || previousMonthDebt < 0 || allowedDebtPercentage < 0 || allowedDebtPercentage > 100) {
+                document.getElementById('error').innerText = 'يرجى إدخال بيانات صحيحة (نسبة الديون المسموحة يجب ألا تتجاوز 100%)';
                 return;
             }
 
             const remainingAmount = totalAmount - paidAmount;
-            const remainingPreviousMonth = previousMonthDebt > 0 ? previousMonthDebt - paidAmount : 0;
+            const remainingPreviousMonth = previousMonthDebt > 0 ? Math.max(0, previousMonthDebt - paidAmount) : 0;
 
             agents = agents.map(agent => {
                 if (agent.id === editingAgentId) {
@@ -386,7 +596,6 @@
                 tableBody.appendChild(row);
             });
 
-            // عرض مجموع الديون الكلي بناءً على الوكلاء المصفاة
             const totalDebtElement = document.getElementById('totalDebt');
             totalDebtElement.innerText = `مجموع الديون الكلي: ${calculateTotalDebt(filteredAgents)}`;
         }
@@ -398,8 +607,8 @@
             document.getElementById('paidAmount').value = '';
             document.getElementById('previousMonthDebt').value = '';
             document.getElementById('allowedDebtPercentage').value = '';
-            document.getElementById('importFile').value = '';
             document.getElementById('searchInput').value = '';
+            document.getElementById('importFile').value = '';
         }
 
         function saveToJson() {
@@ -434,6 +643,7 @@
                             saveAgents();
                             renderTable();
                             document.getElementById('error').innerText = 'تم استيراد البيانات بنجاح';
+                            clearInputs();
                         } else {
                             document.getElementById('error').innerText = 'ملف JSON غير صالح';
                         }
@@ -451,7 +661,6 @@
             window.print();
         }
 
-        // توليد تقرير إجمالي المبالغ
         function generateTotalReport() {
             const totals = agents.reduce((acc, agent) => {
                 acc.totalAmount += agent.totalAmount;
@@ -485,7 +694,6 @@
             reportWindow.print();
         }
 
-        // توليد تقرير تفاصيل كل مبالغ
         function generateDetailsReport() {
             let tableRows = '';
             agents.forEach(agent => {
@@ -533,7 +741,6 @@
             reportWindow.print();
         }
 
-        // توليد تقرير إجمالي المبالغ الشهرية
         function generateMonthlyReport() {
             const monthlyTotals = {};
             agents.forEach(agent => {
@@ -594,7 +801,6 @@
             reportWindow.print();
         }
 
-        // توليد تقرير حركة الحسابات
         function generateMovementReport() {
             let tableRows = '';
             logs.forEach(log => {
@@ -632,7 +838,6 @@
             reportWindow.print();
         }
 
-        // تحميل البيانات عند بدء التشغيل
         window.onload = loadAgents;
     </script>
 </body>
