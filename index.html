@@ -26,8 +26,38 @@ img.logo{border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);}
 #manualOffer{padding:8px;border-radius:8px;border:1px solid #d1d5db;width:100%; display:none; margin-top:8px;}
 #offerDetails{margin-top:8px;padding:8px;background:#eef2f7;border-radius:8px;}
 @media(max-width:650px){.row{grid-template-columns:1fr}}
-#offersModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;}
-#offersModal > div{background:#fff;padding:20px;border-radius:12px;max-width:500px;width:90%;}
+#offersModal, #editOfferModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000;}
+#offersModal > div, #editOfferModal > div{background:#fff;padding:20px;border-radius:12px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;}
+.stats-section {background: #f8fafc;padding: 16px;border-radius: 12px;border: 1px solid #e5e7eb;margin-bottom: 20px;}
+.stats-title {font-size: 18px;font-weight: 600;margin-bottom: 12px;color: var(--accent);text-align: center;}
+.stats-grid {display: grid;grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));gap: 12px;margin-bottom: 12px;}
+.stat-card {background: white;padding: 12px;border-radius: 8px;text-align: center;border-right: 4px solid var(--accent);box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+.stat-card.today {border-right-color: #10b981;}
+.stat-card.offers {border-right-color: #f59e0b;}
+.stat-value {font-size: 24px;font-weight: 700;margin: 4px 0;color: var(--text);}
+.stat-label {font-size: 13px;color: var(--muted);}
+.popular-offers {background: white;padding: 12px;border-radius: 8px;margin-top: 8px;}
+.offer-stat {display: flex;justify-content: space-between;padding: 6px 0;border-bottom: 1px solid #f1f5f9;font-size: 14px;}
+.offer-stat:last-child {border-bottom: none;}
+.offer-name {font-weight: 500;}
+.offer-count {color: var(--accent);font-weight: 600;}
+.bookings-section {background: #f8fafc;padding: 16px;border-radius: 12px;border: 1px solid #e5e7eb;margin-top: 20px;}
+.bookings-title {font-size: 18px;font-weight: 600;margin-bottom: 12px;color: var(--accent);text-align: center;}
+#bookingsTable {width: 100%; border-collapse: collapse; margin-top: 16px;}
+#bookingsTable th, #bookingsTable td {border: 1px solid #e5e7eb; padding: 8px; text-align: right;}
+#bookingsTable th {background: #f1f5f9; font-weight: 600;}
+#bookingsTable tr:nth-child(even) {background: #f9fafb;}
+#bookingsTable .edit-btn {background: #f59e0b; padding: 6px 12px; border-radius: 4px; color: white; border: none; cursor: pointer;}
+#bookingsTable .edit-btn:hover {background: #d97706;}
+@media(max-width:650px) {
+    .stats-grid {grid-template-columns: 1fr;}
+    #bookingsTable {font-size: 14px;}
+    #bookingsTable th, #bookingsTable td {padding: 6px;}
+}
+.offer-item {margin-bottom: 10px;padding: 10px;border: 1px solid #e5e7eb;border-radius: 8px;background: #f9fafb;}
+.offer-item input {width: 100%;padding: 8px;margin-bottom: 5px;border: 1px solid #d1d5db;border-radius: 4px;}
+.removeOfferBtn {background: #f87171;color: white;border: none;padding: 6px 12px;border-radius: 4px;cursor: pointer;margin-top: 5px;}
+.removeOfferBtn:hover {background: #ef4444;}
 </style>
 </head>
 <body>
@@ -35,10 +65,29 @@ img.logo{border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);}
   <div style="text-align:center; margin-bottom:12px;">
     <img src="https://reseller.nbtel.iq/nb_logo.png" alt="شعار NBTEL" class="logo" style="width:120px; height:auto;">
   </div>
-
   <h1>حجوزات خدمات الإنترنت — تلكيف</h1>
-
-  <form id="bookingForm" autocomplete="on">
+  <div class="stats-section">
+    <div class="stats-title">إحصائيات الحجوزات</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">إجمالي الحجوزات</div>
+        <div class="stat-value" id="totalBookings">0</div>
+      </div>
+      <div class="stat-card today">
+        <div class="stat-label">حجوزات اليوم</div>
+        <div class="stat-value" id="todayBookings">0</div>
+      </div>
+      <div class="stat-card offers">
+        <div class="stat-label">عدد العروض</div>
+        <div class="stat-value" id="totalOffers">0</div>
+      </div>
+    </div>
+    <div class="popular-offers">
+      <div style="font-weight:600; margin-bottom:8px; color:var(--muted); font-size:14px;">العروض الأكثر شيوعاً:</div>
+      <div id="popularOffers">لا توجد بيانات كافية</div>
+    </div>
+  </div>
+  <form id="bookingForm" autocomplete="on" novalidate>
     <div class="row">
       <div>
         <label for="name">الاسم</label>
@@ -46,23 +95,20 @@ img.logo{border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);}
       </div>
       <div>
         <label for="phone">رقم الهاتف</label>
-        <input id="phone" name="phone" type="tel" placeholder="0770xxxxxxx" required>
+        <input id="phone" name="phone" type="tel" placeholder="أدخل رقم الهاتف" required>
       </div>
     </div>
-
     <div>
       <label>نوع العرض</label>
       <div class="offers" id="offersContainer"></div>
-      <input type="text" id="manualOffer" placeholder="اكتب العرض هنا...">
+      <input type="text" id="manualOffer" placeholder="اكتب العرض هنا..." style="display:none;">
       <div id="offerDetails">اختر عرضاً لرؤية التفاصيل هنا.</div>
       <button type="button" class="btn" style="background:#6366f1;margin-top:8px" id="manageOffersBtn">إدارة العروض</button>
     </div>
-
     <div>
       <label for="notes">ملاحظات إضافية</label>
       <textarea id="notes" name="notes" rows="3" placeholder="عنوان مفصل، طابق، ملاحظات عن الوصول..."></textarea>
     </div>
-
     <div>
       <label>تحديد موقعك على الخريطة أو استخدم مشاركة الموقع</label>
       <div id="map"></div>
@@ -73,10 +119,8 @@ img.logo{border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);}
       </div>
       <div class="muted" style="margin-top:8px">إحداثيات مختارة: <span id="coords">لم يتم التحديد</span></div>
     </div>
-
     <input type="hidden" id="lat" name="lat">
     <input type="hidden" id="lng" name="lng">
-
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap">
       <button type="submit" class="btn">حفظ الحجز وإرسال الفردي</button>
       <button type="button" id="exportBtn" class="btn" style="background:#38bdf8">تصدير Excel</button>
@@ -84,10 +128,25 @@ img.logo{border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);}
       <input type="file" id="importJSON" style="display:none">
       <button type="button" class="btn" style="background:#f59e0b" id="importBtn">استيراد JSON</button>
       <button type="button" class="btn" style="background:#f87171" id="clearAllBtn">محو كل الحجوزات</button>
+      <button type="button" class="btn" style="background:#ef4444" id="clearTodayBtn">حذف حجوزات اليوم</button>
+      <button type="button" class="btn" style="background:#6b7280" id="toggleTableBtn">إخفاء القائمة</button>
     </div>
   </form>
+  <div class="bookings-section" id="bookingsSection">
+    <div class="bookings-title">قائمة الحجوزات</div>
+    <table id="bookingsTable">
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>رقم الهاتف</th>
+          <th>العرض</th>
+          <th>تعديل</th>
+        </tr>
+      </thead>
+      <tbody id="bookingsTableBody"></tbody>
+    </table>
+  </div>
 </div>
-
 <div id="offersModal">
   <div>
     <h2 style="margin-top:0">إدارة العروض</h2>
@@ -99,162 +158,660 @@ img.logo{border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);}
     </div>
   </div>
 </div>
-
+<div id="editOfferModal">
+  <div>
+    <h2 style="margin-top:0">تعديل العرض</h2>
+    <div class="offers" id="editOffersContainer"></div>
+    <input type="text" id="editManualOffer" placeholder="اكتب العرض يدوياً..." style="display:none;">
+    <div style="margin-top:12px;text-align:right;">
+      <button type="button" class="btn" id="saveEditOfferBtn">حفظ التعديل</button>
+      <button type="button" class="btn" style="background:#f87171" id="closeEditOfferBtn">إغلاق</button>
+    </div>
+  </div>
+</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
+// ======= نظام الإحصائيات =======
+let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+let offerInfo = JSON.parse(localStorage.getItem('offerInfo')) || {
+    "العرض الأول": {description: "راوتر ONT كامل مع التنصيب والتركيب", price: "85,000 د.ع"},
+    "العرض الثاني": {description: "عرض لمدة 3 أشهر مع خدمة 1001", price: "45,000 د.ع"},
+    "العرض الثالث": {description: "استكمال ما تبقى من الاشتراك السابق مع إضافة اشتراك جديد", price: "35,000 د.ع"}
+};
+function updateStats() {
+    try {
+        console.log('تحديث الإحصائيات: عدد الحجوزات =', bookings.length);
+        document.getElementById('totalBookings').textContent = bookings.length;
+        const today = new Date().toISOString().split('T')[0];
+        const todayBookings = bookings.filter(booking => {
+            if (!booking.التاريخ) return false;
+            const bookingDate = new Date(booking.التاريخ).toISOString().split('T')[0];
+            return bookingDate === today;
+        }).length;
+        document.getElementById('todayBookings').textContent = todayBookings;
+        const uniqueOffers = new Set(bookings.map(booking => booking.العرض).filter(offer => offer));
+        const totalOffers = Object.keys(offerInfo).length + (uniqueOffers.size - Object.keys(offerInfo).filter(offer => uniqueOffers.has(offer)).length);
+        document.getElementById('totalOffers').textContent = totalOffers;
+        updatePopularOffers();
+        renderBookingsTable();
+    } catch (error) {
+        console.error('خطأ في تحديث الإحصائيات:', error);
+    }
+}
+function updatePopularOffers() {
+    try {
+        if (bookings.length === 0) {
+            document.getElementById('popularOffers').innerHTML = '<div style="color:var(--muted); font-size:13px;">لا توجد حجوزات بعد</div>';
+            return;
+        }
+        const offerCounts = {};
+        bookings.forEach(booking => {
+            const offer = booking.العرض || 'غير محدد';
+            offerCounts[offer] = (offerCounts[offer] || 0) + 1;
+        });
+        const sortedOffers = Object.entries(offerCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+        if (sortedOffers.length === 0) {
+            document.getElementById('popularOffers').innerHTML = '<div style="color:var(--muted); font-size:13px;">لا توجد بيانات كافية</div>';
+            return;
+        }
+        let html = '';
+        sortedOffers.forEach(([offer, count]) => {
+            html += `<div class="offer-stat"><span class="offer-name">${offer}</span><span class="offer-count">${count} حجز</span></div>`;
+        });
+        document.getElementById('popularOffers').innerHTML = html;
+    } catch (error) {
+        console.error('خطأ في تحديث العروض الشائعة:', error);
+    }
+}
+
+// ======= الجدول =======
+function renderBookingsTable() {
+    try {
+        console.log('عرض الجدول: عدد الحجوزات =', bookings.length, 'الحجوزات:', bookings);
+        const tbody = document.getElementById('bookingsTableBody');
+        if (!tbody) {
+            console.error('عنصر bookingsTableBody غير موجود');
+            return;
+        }
+        tbody.innerHTML = '';
+        if (bookings.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);">لا توجد حجوزات</td></tr>';
+            return;
+        }
+        bookings.forEach((booking, index) => {
+            if (!booking || !booking.الاسم || !booking.الهاتف || !booking.العرض) {
+                console.warn('حجز غير صالح في الفهرس:', index, booking);
+                return;
+            }
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${booking.الاسم || 'غير محدد'}</td>
+                <td>${booking.الهاتف || 'غير محدد'}</td>
+                <td>${booking.العرض || 'غير محدد'}</td>
+                <td><button class="edit-btn" data-index="${index}">تعديل العرض</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const index = btn.getAttribute('data-index');
+                openEditOfferModal(index);
+            });
+        });
+    } catch (error) {
+        console.error('خطأ في عرض جدول الحجوزات:', error);
+        alert('حدث خطأ أثناء عرض جدول الحجوزات.');
+    }
+}
+
+// ======= إظهار/إخفاء الجدول =======
+const toggleTableBtn = document.getElementById('toggleTableBtn');
+const bookingsSection = document.getElementById('bookingsSection');
+toggleTableBtn.addEventListener('click', () => {
+    try {
+        if (bookingsSection.style.display === 'none') {
+            bookingsSection.style.display = 'block';
+            toggleTableBtn.textContent = 'إخفاء القائمة';
+            renderBookingsTable(); // إعادة عرض الجدول عند الإظهار
+        } else {
+            bookingsSection.style.display = 'none';
+            toggleTableBtn.textContent = 'إظهار القائمة';
+        }
+    } catch (error) {
+        console.error('خطأ في إظهار/إخفاء الجدول:', error);
+    }
+});
+
+// ======= حذف حجوزات اليوم =======
+document.getElementById('clearTodayBtn').addEventListener('click', () => {
+    try {
+        if (confirm('هل أنت متأكد من حذف جميع حجوزات اليوم؟')) {
+            const today = new Date().toISOString().split('T')[0];
+            bookings = bookings.filter(booking => {
+                if (!booking.التاريخ) return true;
+                const bookingDate = new Date(booking.التاريخ).toISOString().split('T')[0];
+                return bookingDate !== today;
+            });
+            saveBookings();
+            alert('تم حذف حجوزات اليوم بنجاح!');
+        }
+    } catch (error) {
+        console.error('خطأ في حذف حجوزات اليوم:', error);
+        alert('حدث خطأ أثناء حذف حجوزات اليوم.');
+    }
+});
+
+// ======= تعديل العرض =======
+let currentEditIndex = null;
+function openEditOfferModal(index) {
+    try {
+        currentEditIndex = index;
+        const editOffersContainer = document.getElementById('editOffersContainer');
+        editOffersContainer.innerHTML = '';
+        let hasOffers = false;
+        for (let key in offerInfo) {
+            hasOffers = true;
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'editOffer';
+            radio.value = key;
+            radio.id = 'edit-offer-' + key.replace(/\s+/g, '-');
+            const label = document.createElement('label');
+            label.htmlFor = radio.id;
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(' ' + key));
+            editOffersContainer.appendChild(label);
+        }
+        const manualRadio = document.createElement('input');
+        manualRadio.type = 'radio';
+        manualRadio.name = 'editOffer';
+        manualRadio.value = 'manual';
+        manualRadio.id = 'edit-offer-manual';
+        const manualLabel = document.createElement('label');
+        manualLabel.htmlFor = 'edit-offer-manual';
+        manualLabel.appendChild(manualRadio);
+        manualLabel.appendChild(document.createTextNode(' كتابة العرض يدوياً'));
+        editOffersContainer.appendChild(manualLabel);
+        const editManualOfferInput = document.getElementById('editManualOffer');
+        editManualOfferInput.style.display = 'none';
+        editManualOfferInput.value = '';
+        const currentOffer = bookings[index].العرض || '';
+        const isManual = !offerInfo[currentOffer];
+        if (isManual) {
+            document.getElementById('edit-offer-manual').checked = true;
+            editManualOfferInput.style.display = 'block';
+            editManualOfferInput.value = currentOffer;
+        } else if (hasOffers) {
+            const offerRadio = document.querySelector(`input[name="editOffer"][value="${currentOffer}"]`);
+            if (offerRadio) offerRadio.checked = true;
+            else document.getElementById('edit-offer-manual').checked = true;
+        } else {
+            document.getElementById('edit-offer-manual').checked = true;
+            editManualOfferInput.style.display = 'block';
+        }
+        document.getElementById('editOfferModal').style.display = 'flex';
+    } catch (error) {
+        console.error('خطأ في فتح نافذة تعديل العرض:', error);
+        alert('حدث خطأ أثناء فتح نافذة التعديل.');
+    }
+}
+document.getElementById('saveEditOfferBtn').addEventListener('click', () => {
+    try {
+        const selectedRadio = document.querySelector('input[name="editOffer"]:checked');
+        if (!selectedRadio) {
+            alert('يرجى اختيار عرض أو كتابة عرض يدوي.');
+            return;
+        }
+        const selectedOffer = selectedRadio.value;
+        let offerText = selectedOffer === 'manual' ? document.getElementById('editManualOffer').value.trim() : selectedOffer;
+        if (selectedOffer === 'manual' && !offerText) {
+            alert('يرجى كتابة تفاصيل العرض اليدوي.');
+            return;
+        }
+        const offerDesc = selectedOffer === 'manual' ? offerText :
+            (offerInfo[selectedOffer] ? offerInfo[selectedOffer].description + ' — السعر: ' + offerInfo[selectedOffer].price : selectedOffer);
+        bookings[currentEditIndex].العرض = offerText;
+        bookings[currentEditIndex].التفاصيل = offerDesc;
+        saveBookings();
+        document.getElementById('editOfferModal').style.display = 'none';
+        alert('تم تعديل العرض بنجاح!');
+    } catch (error) {
+        console.error('خطأ في حفظ تعديل العرض:', error);
+        alert('حدث خطأ أثناء حفظ التعديل.');
+    }
+});
+document.getElementById('closeEditOfferBtn').addEventListener('click', () => {
+    try {
+        document.getElementById('editOfferModal').style.display = 'none';
+    } catch (error) {
+        console.error('خطأ في إغلاق نافذة تعديل العرض:', error);
+    }
+});
+document.getElementById('editOffersContainer').addEventListener('change', () => {
+    try {
+        const selectedRadio = document.querySelector('input[name="editOffer"]:checked');
+        if (selectedRadio && selectedRadio.value === 'manual') {
+            document.getElementById('editManualOffer').style.display = 'block';
+        } else {
+            document.getElementById('editManualOffer').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('خطأ في تحديث نافذة تعديل العرض:', error);
+    }
+});
+document.getElementById('editManualOffer').addEventListener('input', () => {
+    try {
+        if (document.getElementById('edit-offer-manual').checked) {
+            document.getElementById('editManualOffer').value;
+        }
+    } catch (error) {
+        console.error('خطأ في تحديث العرض اليدوي:', error);
+    }
+});
+
 // ======= الخريطة =======
-const map = L.map('map',{zoomControl:true}).setView([33.3152,44.3661],12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);
-let marker=null;
-const coordsEl=document.getElementById('coords');
-const latEl=document.getElementById('lat');
-const lngEl=document.getElementById('lng');
-function setCoords(lat,lng){ if(marker) map.removeLayer(marker); marker=L.marker([lat,lng]).addTo(map); map.flyTo([lat,lng],16); coordsEl.textContent=lat.toFixed(6)+' , '+lng.toFixed(6); latEl.value=lat; lngEl.value=lng; }
-document.getElementById('locateBtn').addEventListener('click',()=>{ if(!navigator.geolocation){ alert('المتصفح لا يدعم تحديد الموقع.'); return; } navigator.geolocation.getCurrentPosition(pos=>{ setCoords(pos.coords.latitude,pos.coords.longitude); },err=>{alert('فشل في الحصول على الموقع: '+(err.message||err.code));},{enableHighAccuracy:true,timeout:10000}); });
-document.getElementById('pickBtn').addEventListener('click',()=>{ alert('اضغط على الخريطة لتحديد الموقع.'); const onClick=(e)=>{ setCoords(e.latlng.lat,e.latlng.lng); map.off('click',onClick); }; map.on('click',onClick); });
-document.getElementById('clearBtn').addEventListener('click',()=>{ if(marker) map.removeLayer(marker); marker=null; coordsEl.textContent='لم يتم التحديد'; latEl.value=''; lngEl.value=''; });
+const map = L.map('map', {zoomControl: true}).setView([36.3719, 43.1228], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OpenStreetMap contributors'}).addTo(map);
+let marker = null;
+const coordsEl = document.getElementById('coords');
+const latEl = document.getElementById('lat');
+const lngEl = document.getElementById('lng');
+function setCoords(lat, lng) {
+    try {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng]).addTo(map);
+        map.flyTo([lat, lng], 16);
+        coordsEl.textContent = lat.toFixed(6) + ' , ' + lng.toFixed(6);
+        latEl.value = lat;
+        lngEl.value = lng;
+    } catch (error) {
+        console.error('خطأ في تحديد الإحداثيات:', error);
+    }
+}
+document.getElementById('locateBtn').addEventListener('click', () => {
+    if (!navigator.geolocation) { alert('المتصفح لا يدعم تحديد الموقع.'); return; }
+    navigator.geolocation.getCurrentPosition(
+        pos => { setCoords(pos.coords.latitude, pos.coords.longitude); },
+        err => {
+            let message;
+            switch (err.code) {
+                case err.PERMISSION_DENIED: message = 'تم رفض الوصول إلى الموقع. يرجى السماح بالوصول.'; break;
+                case err.POSITION_UNAVAILABLE: message = 'معلومات الموقع غير متوفرة.'; break;
+                case err.TIMEOUT: message = 'انتهت مهلة طلب الموقع.'; break;
+                default: message = 'خطأ غير معروف: ' + err.message;
+            }
+            alert('فشل في الحصول على الموقع: ' + message);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+});
+document.getElementById('pickBtn').addEventListener('click', () => {
+    alert('اضغط على الخريطة لتحديد الموقع.');
+    const onClick = (e) => { setCoords(e.latlng.lat, e.latlng.lng); map.off('click', onClick); };
+    map.on('click', onClick);
+});
+document.getElementById('clearBtn').addEventListener('click', () => {
+    try {
+        if (marker) map.removeLayer(marker);
+        marker = null;
+        coordsEl.textContent = 'لم يتم التحديد';
+        latEl.value = '';
+        lngEl.value = '';
+    } catch (error) {
+        console.error('خطأ في محو الإحداثيات:', error);
+    }
+});
 
 // ======= العروض =======
-let offerInfo={
-  "العرض الأول":{description:"راوتر ONT كامل مع التنصيب والتركيب", price:"85,000 د.ع"},
-  "العرض الثاني":{description:"عرض لمدة 3 أشهر مع خدمة 1001", price:"45,000 د.ع"},
-  "العرض الثالث":{description:"استكمال ما تبقى من الاشتراك السابق مع إضافة اشتراك جديد", price:"35,000 د.ع"}
-};
-offerInfo=JSON.parse(localStorage.getItem('offerInfo'))||offerInfo;
-const offersContainer=document.getElementById('offersContainer');
-const offerDetails=document.getElementById('offerDetails');
-const manualOfferInput=document.getElementById('manualOffer');
-function renderOffers(){
-  offersContainer.innerHTML='';
-  for(let key in offerInfo){
-    const radio=document.createElement('input'); radio.type='radio'; radio.name='offer'; radio.value=key; if(key==="العرض الأول") radio.checked=true;
-    const label=document.createElement('label'); label.appendChild(radio); label.appendChild(document.createTextNode(' '+key)); offersContainer.appendChild(label);
-  }
-  const manualLabel=document.createElement('label');
-  const manualRadio=document.createElement('input'); manualRadio.type='radio'; manualRadio.name='offer'; manualRadio.value='manual';
-  manualLabel.appendChild(manualRadio); manualLabel.appendChild(document.createTextNode(' كتابة العرض يدوياً')); offersContainer.appendChild(manualLabel);
+const offersContainer = document.getElementById('offersContainer');
+const offerDetails = document.getElementById('offerDetails');
+const manualOfferInput = document.getElementById('manualOffer');
+function renderOffers() {
+    try {
+        offersContainer.innerHTML = '';
+        let hasOffers = false;
+        for (let key in offerInfo) {
+            hasOffers = true;
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'offer';
+            radio.value = key;
+            radio.id = 'offer-' + key.replace(/\s+/g, '-');
+            const label = document.createElement('label');
+            label.htmlFor = radio.id;
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(' ' + key));
+            offersContainer.appendChild(label);
+        }
+        const manualRadio = document.createElement('input');
+        manualRadio.type = 'radio';
+        manualRadio.name = 'offer';
+        manualRadio.value = 'manual';
+        manualRadio.id = 'offer-manual';
+        const manualLabel = document.createElement('label');
+        manualLabel.htmlFor = 'offer-manual';
+        manualLabel.appendChild(manualRadio);
+        manualLabel.appendChild(document.createTextNode(' كتابة العرض يدوياً'));
+        offersContainer.appendChild(manualLabel);
+        const firstRadio = hasOffers ? document.querySelector('input[name="offer"]') : document.getElementById('offer-manual');
+        if (firstRadio) firstRadio.checked = true;
+        updateOfferDetails();
+        updateStats();
+    } catch (error) {
+        console.error('خطأ في عرض العروض:', error);
+        alert('حدث خطأ أثناء تحميل العروض. يرجى إعادة تحميل الصفحة.');
+    }
+}
+function updateOfferDetails() {
+    try {
+        const selectedRadio = document.querySelector('input[name="offer"]:checked');
+        if (!selectedRadio) {
+            offerDetails.textContent = 'اختر عرضاً لرؤية التفاصيل هنا.';
+            manualOfferInput.style.display = 'none';
+            return;
+        }
+        const selectedValue = selectedRadio.value;
+        if (selectedValue === 'manual') {
+            manualOfferInput.style.display = 'block';
+            offerDetails.textContent = manualOfferInput.value || 'اكتب العرض هنا.';
+        } else {
+            manualOfferInput.style.display = 'none';
+            offerDetails.textContent = offerInfo[selectedValue] ? 
+                offerInfo[selectedValue].description + ' — السعر: ' + offerInfo[selectedValue].price : 
+                'تفاصيل العرض غير متوفرة';
+        }
+    } catch (error) {
+        console.error('خطأ في تحديث تفاصيل العرض:', error);
+    }
 }
 renderOffers();
-
-// تحديث تفاصيل العرض
-offersContainer.addEventListener('change',()=>{
-  const selected=document.querySelector('input[name="offer"]:checked').value;
-  if(selected==='manual'){ manualOfferInput.style.display='block'; offerDetails.textContent=manualOfferInput.value || 'اكتب العرض هنا.'; } else{ manualOfferInput.style.display='none'; offerDetails.textContent=offerInfo[selected].description + ' — السعر: '+offerInfo[selected].price; }
+offersContainer.addEventListener('change', updateOfferDetails);
+manualOfferInput.addEventListener('input', () => {
+    try {
+        if (document.getElementById('offer-manual').checked) {
+            offerDetails.textContent = manualOfferInput.value || 'اكتب العرض هنا.';
+        }
+    } catch (error) {
+        console.error('خطأ في تحديث تفاصيل العرض اليدوي:', error);
+    }
 });
-manualOfferInput.addEventListener('input',()=>{ offerDetails.textContent=manualOfferInput.value; });
 
 // ======= إدارة العروض (مودال) =======
-const manageOffersBtn=document.getElementById('manageOffersBtn');
-const offersModal=document.getElementById('offersModal');
-const offersList=document.getElementById('offersList');
-const addOfferBtn=document.getElementById('addOfferBtn');
-const saveOffersBtn=document.getElementById('saveOffersBtn');
-const closeOffersBtn=document.getElementById('closeOffersBtn');
-
-function renderOffersModal(){
-  offersList.innerHTML='';
-  for(let key in offerInfo){
-    const div=document.createElement('div'); div.style.marginBottom='8px';
-    div.innerHTML=`<input type="text" value="${key}" class="offerName" style="width:45%;padding:4px;margin-right:4%;">
-      <input type="text" value="${offerInfo[key].description}" class="offerDesc" style="width:45%;padding:4px;margin-bottom:4px;"><br>
-      <input type="text" value="${offerInfo[key].price}" class="offerPrice" style="width:45%;padding:4px;">
-      <button type="button" class="removeOfferBtn" style="background:#f87171;color:#fff;padding:4px;border:none;border-radius:6px;margin-left:4px">حذف</button>`;
-    offersList.appendChild(div);
-    div.querySelector('.removeOfferBtn').addEventListener('click',()=>{ div.remove(); });
-  }
+const manageOffersBtn = document.getElementById('manageOffersBtn');
+const offersModal = document.getElementById('offersModal');
+const offersList = document.getElementById('offersList');
+const addOfferBtn = document.getElementById('addOfferBtn');
+const saveOffersBtn = document.getElementById('saveOffersBtn');
+const closeOffersBtn = document.getElementById('closeOffersBtn');
+function renderOffersModal() {
+    try {
+        offersList.innerHTML = '';
+        for (let key in offerInfo) {
+            const div = document.createElement('div');
+            div.className = 'offer-item';
+            div.innerHTML = `
+                <div><label>اسم العرض:</label><input type="text" value="${key}" class="offerName" placeholder="اسم العرض"></div>
+                <div><label>وصف العرض:</label><input type="text" value="${offerInfo[key].description}" class="offerDesc" placeholder="وصف العرض"></div>
+                <div><label>السعر:</label><input type="text" value="${offerInfo[key].price}" class="offerPrice" placeholder="السعر"></div>
+                <button type="button" class="removeOfferBtn">حذف العرض</button>
+            `;
+            offersList.appendChild(div);
+            div.querySelector('.removeOfferBtn').addEventListener('click', function() {
+                if (Object.keys(offerInfo).length <= 1) {
+                    alert('يجب أن يكون هناك عرض واحد على الأقل.');
+                    return;
+                }
+                div.remove();
+            });
+        }
+    } catch (error) {
+        console.error('خطأ في عرض نافذة إدارة العروض:', error);
+    }
 }
-addOfferBtn.addEventListener('click',()=>{
-  const div=document.createElement('div'); div.style.marginBottom='8px';
-  div.innerHTML=`<input type="text" placeholder="اسم العرض" class="offerName" style="width:45%;padding:4px;margin-right:4%;">
-    <input type="text" placeholder="تفاصيل العرض" class="offerDesc" style="width:45%;padding:4px;margin-bottom:4px;"><br>
-    <input type="text" placeholder="السعر" class="offerPrice" style="width:45%;padding:4px;">
-    <button type="button" class="removeOfferBtn" style="background:#f87171;color:#fff;padding:4px;border:none;border-radius:6px;margin-left:4px">حذف</button>`;
-  offersList.appendChild(div);
-  div.querySelector('.removeOfferBtn').addEventListener('click',()=>{ div.remove(); });
+addOfferBtn.addEventListener('click', function() {
+    try {
+        const div = document.createElement('div');
+        div.className = 'offer-item';
+        div.innerHTML = `
+            <div><label>اسم العرض:</label><input type="text" placeholder="اسم العرض" class="offerName"></div>
+            <div><label>وصف العرض:</label><input type="text" placeholder="وصف العرض" class="offerDesc"></div>
+            <div><label>السعر:</label><input type="text" placeholder="السعر" class="offerPrice"></div>
+            <button type="button" class="removeOfferBtn">حذف العرض</button>
+        `;
+        offersList.appendChild(div);
+        div.querySelector('.removeOfferBtn').addEventListener('click', function() {
+            if (offersList.children.length <= 1) {
+                alert('يجب أن يكون هناك عرض واحد على الأقل.');
+                return;
+            }
+            div.remove();
+        });
+    } catch (error) {
+        console.error('خطأ في إضافة عرض جديد:', error);
+    }
 });
-manageOffersBtn.addEventListener('click',()=>{ renderOffersModal(); offersModal.style.display='flex'; });
-closeOffersBtn.addEventListener('click',()=>{ offersModal.style.display='none'; });
-saveOffersBtn.addEventListener('click',()=>{
-  const newOffers={};
-  offersList.querySelectorAll('div').forEach(div=>{
-    const name=div.querySelector('.offerName').value.trim();
-    const desc=div.querySelector('.offerDesc').value.trim();
-    const price=div.querySelector('.offerPrice').value.trim();
-    if(name) newOffers[name]={description:desc, price:price};
-  });
-  offerInfo=newOffers;
-  localStorage.setItem('offerInfo',JSON.stringify(offerInfo));
-  renderOffers();
-  offersModal.style.display='none';
+manageOffersBtn.addEventListener('click', function() {
+    try {
+        renderOffersModal();
+        offersModal.style.display = 'flex';
+    } catch (error) {
+        console.error('خطأ في فتح نافذة إدارة العروض:', error);
+    }
+});
+closeOffersBtn.addEventListener('click', function() {
+    try {
+        offersModal.style.display = 'none';
+    } catch (error) {
+        console.error('خطأ في إغلاق نافذة إدارة العروض:', error);
+    }
+});
+saveOffersBtn.addEventListener('click', function() {
+    try {
+        const newOffers = {};
+        let hasError = false;
+        const names = new Set();
+        offersList.querySelectorAll('.offer-item').forEach(div => {
+            const name = div.querySelector('.offerName').value.trim();
+            const desc = div.querySelector('.offerDesc').value.trim();
+            const price = div.querySelector('.offerPrice').value.trim();
+            if (name && desc && price) {
+                if (names.has(name)) {
+                    hasError = true;
+                    alert(`اسم العرض "${name}" مكرر. يرجى اختيار اسم مختلف.`);
+                    return;
+                }
+                names.add(name);
+                newOffers[name] = {description: desc, price: price};
+            } else if (name || desc || price) {
+                hasError = true;
+            }
+        });
+        if (hasError) {
+            alert('يرجى ملء جميع الحقول لكل عرض أو حذف العروض غير المكتملة.');
+            return;
+        }
+        if (Object.keys(newOffers).length === 0) {
+            alert('يجب إضافة عرض واحد على الأقل.');
+            return;
+        }
+        offerInfo = newOffers;
+        localStorage.setItem('offerInfo', JSON.stringify(offerInfo));
+        renderOffers();
+        offersModal.style.display = 'none';
+        alert("تم حفظ العروض بنجاح!");
+    } catch (error) {
+        console.error('خطأ في حفظ العروض:', error);
+        alert('حدث خطأ أثناء حفظ العروض. يرجى المحاولة مرة أخرى.');
+    }
 });
 
 // ======= الحجوزات =======
-let bookings=JSON.parse(localStorage.getItem('bookings'))||[];
-function saveBookings(){ localStorage.setItem('bookings',JSON.stringify(bookings)); }
-
-// حفظ فردي وإرسال واتساب
-const form=document.getElementById('bookingForm');
-form.addEventListener('submit',e=>{
-  e.preventDefault();
-  const selectedOffer=document.querySelector('input[name="offer"]:checked').value;
-  const offerText=selectedOffer==='manual'? manualOfferInput.value : selectedOffer;
-  const offerDesc=selectedOffer==='manual'? manualOfferInput.value : offerInfo[selectedOffer].description + ' — السعر: '+offerInfo[selectedOffer].price;
-  const data={
-    الاسم: form.name.value.trim(),
-    الهاتف: form.phone.value.trim(),
-    العرض: offerText,
-    التفاصيل: offerDesc,
-    الإحداثيات: latEl.value && lngEl.value ? `${latEl.value}, ${lngEl.value}` : "غير محدد",
-    ملاحظات: form.notes.value.trim()
-  };
-  bookings.push(data); saveBookings();
-  // إرسال مباشر على واتساب
-  const phoneNumber="9647512328848";
-  const message=`📢 حجز جديد:%0A👤 الاسم: ${data.الاسم}%0A📞 الهاتف: ${data.الهاتف}%0A📦 العرض: ${data.العرض}%0A📍 الإحداثيات: ${data.الإحداثيات}%0A📝 ملاحظات: ${data.ملاحظات}`;
-  window.open(`https://wa.me/${phoneNumber}?text=${message}`,"_blank");
-  alert("تم حفظ الحجز وإرساله على واتساب!");
-  form.reset(); if(marker){ map.removeLayer(marker); marker=null; coordsEl.textContent='لم يتم التحديد'; }
+function saveBookings() {
+    try {
+        console.log('حفظ الحجوزات:', bookings);
+        localStorage.setItem('bookings', JSON.stringify(bookings));
+        // إعادة تحميل الحجوزات من localStorage لضمان الاتساق
+        bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+        console.log('الحجوزات بعد الحفظ:', bookings);
+        updateStats();
+        renderBookingsTable();
+    } catch (error) {
+        console.error('خطأ في حفظ الحجوزات:', error);
+        alert('حدث خطأ أثناء حفظ الحجوزات.');
+    }
+}
+updateStats();
+const form = document.getElementById('bookingForm');
+const phoneInput = document.getElementById('phone');
+form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    try {
+        const name = form.name.value.trim();
+        if (!name) {
+            alert('يرجى إدخال الاسم.');
+            return;
+        }
+        let phone = phoneInput.value.trim().replace(/[\s+()-]/g, '');
+        if (!phone) {
+            alert('يرجى إدخال رقم هاتف.');
+            return;
+        }
+        const selectedRadio = document.querySelector('input[name="offer"]:checked');
+        if (!selectedRadio) {
+            alert('يرجى اختيار عرض أو كتابة عرض يدوي.');
+            return;
+        }
+        const selectedOffer = selectedRadio.value;
+        let offerText = selectedOffer === 'manual' ? manualOfferInput.value.trim() : selectedOffer;
+        if (selectedOffer === 'manual' && !offerText) {
+            alert('يرجى كتابة تفاصيل العرض اليدوي.');
+            return;
+        }
+        const offerDesc = selectedOffer === 'manual' ? manualOfferInput.value.trim() :
+            (offerInfo[selectedOffer] ? offerInfo[selectedOffer].description + ' — السعر: ' + offerInfo[selectedOffer].price : selectedOffer);
+        const data = {
+            الاسم: name,
+            الهاتف: phone,
+            العرض: offerText,
+            التفاصيل: offerDesc,
+            الإحداثيات: latEl.value && lngEl.value ? `${latEl.value}, ${lngEl.value}` : "غير محدد",
+            ملاحظات: form.notes.value.trim(),
+            التاريخ: new Date().toLocaleString('ar-IQ')
+        };
+        console.log('حجز جديد:', data);
+        bookings.push(data);
+        saveBookings();
+        const phoneNumber = "9647512328848";
+        const message = encodeURIComponent(`📢 حجز جديد:
+👤 الاسم: ${data.الاسم}
+📞 الهاتف: ${data.الهاتف}
+📦 العرض: ${data.العرض}
+📍 الإحداثيات: ${data.الإحداثيات}
+📝 ملاحظات: ${data.ملاحظات.substring(0, 500)}
+📅 التاريخ: ${data.التاريخ}`);
+        window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+        alert("تم حفظ الحجز وإرساله على واتساب!");
+        form.reset();
+        if (marker) {
+            map.removeLayer(marker);
+            marker = null;
+            coordsEl.textContent = 'لم يتم التحديد';
+            latEl.value = '';
+            lngEl.value = '';
+        }
+        renderOffers();
+        // إضافة تأخير طفيف لضمان تحديث DOM
+        setTimeout(() => {
+            renderBookingsTable();
+            console.log('تم استدعاء renderBookingsTable بعد الإرسال');
+        }, 100);
+    } catch (error) {
+        console.error('خطأ في إرسال الحجز:', error);
+        alert('حدث خطأ أثناء حفظ الحجز أو إرساله. يرجى المحاولة مرة أخرى.');
+    }
 });
 
 // تصدير Excel
-document.getElementById('exportBtn').addEventListener('click',()=>{
-  if(bookings.length===0){ alert("لا توجد حجوزات لتصديرها!"); return; }
-  const ws=XLSX.utils.json_to_sheet(bookings);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"حجوزات");
-  XLSX.writeFile(wb,"حجوزات_العملاء.xlsx");
+document.getElementById('exportBtn').addEventListener('click', () => {
+    try {
+        if (bookings.length === 0) { alert("لا توجد حجوزات لتصديرها!"); return; }
+        const ws = XLSX.utils.json_to_sheet(bookings);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "حجوزات");
+        XLSX.writeFile(wb, "حجوزات_العملاء.xlsx");
+    } catch (error) {
+        console.error('خطأ في تصدير Excel:', error);
+        alert('حدث خطأ أثناء تصدير الحجوزات.');
+    }
 });
 
 // نسخة احتياطية يومية
-document.getElementById('backupBtn').addEventListener('click',()=>{
-  if(bookings.length===0){ alert("لا توجد حجوزات للنسخة الاحتياطية!"); return; }
-  const date=new Date().toISOString().split('T')[0];
-  const ws=XLSX.utils.json_to_sheet(bookings);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"حجوزات");
-  XLSX.writeFile(wb,`backup_${date}.xlsx`);
-  const blob=new Blob([JSON.stringify(bookings,null,2)],{type:"application/json"});
-  const link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download=`backup_${date}.json`; link.click();
-  alert("تم إنشاء النسخة الاحتياطية بنجاح!");
+document.getElementById('backupBtn').addEventListener('click', () => {
+    try {
+        if (bookings.length === 0) { alert("لا توجد حجوزات للنسخة الاحتياطية!"); return; }
+        const date = new Date().toISOString().split('T')[0];
+        const ws = XLSX.utils.json_to_sheet(bookings);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "حجوزات");
+        XLSX.writeFile(wb, `backup_${date}.xlsx`);
+        const blob = new Blob([JSON.stringify(bookings, null, 2)], {type: "application/json"});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `backup_${date}.json`;
+        link.click();
+        alert("تم إنشاء النسخة الاحتياطية بنجاح!");
+    } catch (error) {
+        console.error('خطأ في إنشاء النسخة الاحتياطية:', error);
+        alert('حدث خطأ أثناء إنشاء النسخة الاحتياطية.');
+    }
 });
 
 // استيراد JSON
-const importInput=document.getElementById('importJSON');
-document.getElementById('importBtn').addEventListener('click',()=>{ importInput.click(); });
-importInput.addEventListener('change',e=>{
-  const file=e.target.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=function(evt){
-    try{ const imported=JSON.parse(evt.target.result); if(Array.isArray(imported)){ bookings=imported; saveBookings(); alert("تم استيراد JSON بنجاح!"); }else{ alert("ملف غير صالح"); } }
-    catch(err){ alert("خطأ في قراءة الملف"); }
-  }
-  reader.readAsText(file);
+const importInput = document.getElementById('importJSON');
+document.getElementById('importBtn').addEventListener('click', () => { importInput.click(); });
+importInput.addEventListener('change', function(e) {
+    try {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const imported = JSON.parse(evt.target.result);
+                if (Array.isArray(imported)) {
+                    // فحص صحة الحجوزات المستوردة
+                    const validBookings = imported.filter(booking => 
+                        booking && booking.الاسم && booking.الهاتف && booking.العرض
+                    );
+                    bookings = validBookings;
+                    saveBookings();
+                    alert("تم استيراد JSON بنجاح!");
+                } else {
+                    alert("ملف غير صالح");
+                }
+            } catch (err) {
+                console.error('خطأ في قراءة ملف JSON:', err);
+                alert("خطأ في قراءة الملف: " + err.message);
+            }
+        };
+        reader.readAsText(file);
+    } catch (error) {
+        console.error('خطأ في استيراد JSON:', error);
+        alert('حدث خطأ أثناء استيراد الملف.');
+    }
 });
 
 // محو كل الحجوزات
-document.getElementById('clearAllBtn').addEventListener('click',()=>{
-  if(confirm("هل أنت متأكد من محو كل الحجوزات؟")){ bookings=[]; saveBookings(); alert("تم مسح كل الحجوزات"); }
+document.getElementById('clearAllBtn').addEventListener('click', () => {
+    try {
+        if (confirm("هل أنت متأكد من محو كل الحجوزات؟")) {
+            bookings = [];
+            saveBookings();
+            alert("تم مسح كل الحجوزات");
+        }
+    } catch (error) {
+        console.error('خطأ في محو الحجوزات:', error);
+        alert('حدث خطأ أثناء محو الحجوزات.');
+    }
 });
 </script>
 </body>
