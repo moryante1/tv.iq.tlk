@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>نموذج حجز الإنترنت — مودرن</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f5f7fa;--card:#ffffff;--accent:#0ea5e9;--accent-hover:#0284c7;--muted:#6b7280;--text:#111827;color-scheme:light;}
+body{font-family:'Segoe UI', Tahoma, Arial, Helvetica, sans-serif;background:var(--bg);color:var(--text);margin:0;padding:20px;}
+.container{max-width:900px;margin:20px auto;padding:24px;background:var(--card);border-radius:16px;box-shadow:0 8px 20px rgba(0,0,0,0.08);}
+h1{margin:0 0 18px 0;font-size:24px;text-align:center;color: var(--accent);}
+form{display:grid;gap:16px;}
+label{font-size:15px;color: var(--muted);}
+input[type=text], input[type=tel], textarea, select{width:100%;padding:12px;border-radius:10px;border:1px solid #d1d5db;background:#f9fafb;color:var(--text);font-size:15px;transition:border 0.2s, box-shadow 0.2s;}
+input[type=text]:focus, input[type=tel]:focus, textarea:focus{outline:none;border-color: var(--accent);box-shadow:0 0 0 3px rgba(14,165,233,0.2);}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+#map{height:350px;border-radius:12px;border:1px solid #e5e7eb;}
+.offers{background:#f3f4f6;padding:12px;border-radius:10px;}
+.offers label{display:block;padding:6px 0;cursor:pointer;}
+.btn{display:inline-block;padding:12px 18px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;transition:background 0.2s, transform 0.1s;}
+.btn:hover{background: var(--accent-hover);transform: translateY(-1px);}
+.muted{font-size:13px;color:var(--muted);}
+img.logo{border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);}
+#manualOffer{padding:8px;border-radius:8px;border:1px solid #d1d5db;width:100%; display:none; margin-top:8px;}
+#offerDetails{margin-top:8px;padding:8px;background:#eef2f7;border-radius:8px;}
+@media(max-width:650px){.row{grid-template-columns:1fr}}
+#offersModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;}
+#offersModal > div{background:#fff;padding:20px;border-radius:12px;max-width:500px;width:90%;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div style="text-align:center; margin-bottom:12px;">
+    <img src="https://reseller.nbtel.iq/nb_logo.png" alt="شعار NBTEL" class="logo" style="width:120px; height:auto;">
+  </div>
+
+  <h1>حجوزات خدمات الإنترنت — تلكيف</h1>
+
+  <form id="bookingForm" autocomplete="on">
+    <div class="row">
+      <div>
+        <label for="name">الاسم</label>
+        <input id="name" name="name" type="text" placeholder="مثال: علي" required>
+      </div>
+      <div>
+        <label for="phone">رقم الهاتف</label>
+        <input id="phone" name="phone" type="tel" placeholder="0770xxxxxxx" required>
+      </div>
+    </div>
+
+    <div>
+      <label>نوع العرض</label>
+      <div class="offers" id="offersContainer"></div>
+      <input type="text" id="manualOffer" placeholder="اكتب العرض هنا...">
+      <div id="offerDetails">اختر عرضاً لرؤية التفاصيل هنا.</div>
+      <button type="button" class="btn" style="background:#6366f1;margin-top:8px" id="manageOffersBtn">إدارة العروض</button>
+    </div>
+
+    <div>
+      <label for="notes">ملاحظات إضافية</label>
+      <textarea id="notes" name="notes" rows="3" placeholder="عنوان مفصل، طابق، ملاحظات عن الوصول..."></textarea>
+    </div>
+
+    <div>
+      <label>تحديد موقعك على الخريطة أو استخدم مشاركة الموقع</label>
+      <div id="map"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" id="locateBtn" class="btn">مشاركة الموقع</button>
+        <button type="button" id="pickBtn" class="btn">اختر نقطة</button>
+        <button type="button" id="clearBtn" class="btn" style="background:#f87171">محو الإحداثيات</button>
+      </div>
+      <div class="muted" style="margin-top:8px">إحداثيات مختارة: <span id="coords">لم يتم التحديد</span></div>
+    </div>
+
+    <input type="hidden" id="lat" name="lat">
+    <input type="hidden" id="lng" name="lng">
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap">
+      <button type="submit" class="btn">حفظ الحجز وإرسال الفردي</button>
+      <button type="button" id="exportBtn" class="btn" style="background:#38bdf8">تصدير Excel</button>
+      <button type="button" id="backupBtn" class="btn" style="background:#16a34a">نسخة احتياطية يومية</button>
+      <input type="file" id="importJSON" style="display:none">
+      <button type="button" class="btn" style="background:#f59e0b" id="importBtn">استيراد JSON</button>
+      <button type="button" class="btn" style="background:#f87171" id="clearAllBtn">محو كل الحجوزات</button>
+    </div>
+  </form>
+</div>
+
+<div id="offersModal">
+  <div>
+    <h2 style="margin-top:0">إدارة العروض</h2>
+    <div id="offersList"></div>
+    <button type="button" class="btn" id="addOfferBtn" style="background:#10b981;margin-top:8px">إضافة عرض جديد</button>
+    <div style="margin-top:12px;text-align:right;">
+      <button type="button" class="btn" id="saveOffersBtn">حفظ التعديلات</button>
+      <button type="button" class="btn" style="background:#f87171" id="closeOffersBtn">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ======= الخريطة =======
+const map = L.map('map',{zoomControl:true}).setView([33.3152,44.3661],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);
+let marker=null;
+const coordsEl=document.getElementById('coords');
+const latEl=document.getElementById('lat');
+const lngEl=document.getElementById('lng');
+function setCoords(lat,lng){ if(marker) map.removeLayer(marker); marker=L.marker([lat,lng]).addTo(map); map.flyTo([lat,lng],16); coordsEl.textContent=lat.toFixed(6)+' , '+lng.toFixed(6); latEl.value=lat; lngEl.value=lng; }
+document.getElementById('locateBtn').addEventListener('click',()=>{ if(!navigator.geolocation){ alert('المتصفح لا يدعم تحديد الموقع.'); return; } navigator.geolocation.getCurrentPosition(pos=>{ setCoords(pos.coords.latitude,pos.coords.longitude); },err=>{alert('فشل في الحصول على الموقع: '+(err.message||err.code));},{enableHighAccuracy:true,timeout:10000}); });
+document.getElementById('pickBtn').addEventListener('click',()=>{ alert('اضغط على الخريطة لتحديد الموقع.'); const onClick=(e)=>{ setCoords(e.latlng.lat,e.latlng.lng); map.off('click',onClick); }; map.on('click',onClick); });
+document.getElementById('clearBtn').addEventListener('click',()=>{ if(marker) map.removeLayer(marker); marker=null; coordsEl.textContent='لم يتم التحديد'; latEl.value=''; lngEl.value=''; });
+
+// ======= العروض =======
+let offerInfo={
+  "العرض الأول":{description:"راوتر ONT كامل مع التنصيب والتركيب", price:"85,000 د.ع"},
+  "العرض الثاني":{description:"عرض لمدة 3 أشهر مع خدمة 1001", price:"45,000 د.ع"},
+  "العرض الثالث":{description:"استكمال ما تبقى من الاشتراك السابق مع إضافة اشتراك جديد", price:"35,000 د.ع"}
+};
+offerInfo=JSON.parse(localStorage.getItem('offerInfo'))||offerInfo;
+const offersContainer=document.getElementById('offersContainer');
+const offerDetails=document.getElementById('offerDetails');
+const manualOfferInput=document.getElementById('manualOffer');
+function renderOffers(){
+  offersContainer.innerHTML='';
+  for(let key in offerInfo){
+    const radio=document.createElement('input'); radio.type='radio'; radio.name='offer'; radio.value=key; if(key==="العرض الأول") radio.checked=true;
+    const label=document.createElement('label'); label.appendChild(radio); label.appendChild(document.createTextNode(' '+key)); offersContainer.appendChild(label);
+  }
+  const manualLabel=document.createElement('label');
+  const manualRadio=document.createElement('input'); manualRadio.type='radio'; manualRadio.name='offer'; manualRadio.value='manual';
+  manualLabel.appendChild(manualRadio); manualLabel.appendChild(document.createTextNode(' كتابة العرض يدوياً')); offersContainer.appendChild(manualLabel);
+}
+renderOffers();
+
+// تحديث تفاصيل العرض
+offersContainer.addEventListener('change',()=>{
+  const selected=document.querySelector('input[name="offer"]:checked').value;
+  if(selected==='manual'){ manualOfferInput.style.display='block'; offerDetails.textContent=manualOfferInput.value || 'اكتب العرض هنا.'; } else{ manualOfferInput.style.display='none'; offerDetails.textContent=offerInfo[selected].description + ' — السعر: '+offerInfo[selected].price; }
+});
+manualOfferInput.addEventListener('input',()=>{ offerDetails.textContent=manualOfferInput.value; });
+
+// ======= إدارة العروض (مودال) =======
+const manageOffersBtn=document.getElementById('manageOffersBtn');
+const offersModal=document.getElementById('offersModal');
+const offersList=document.getElementById('offersList');
+const addOfferBtn=document.getElementById('addOfferBtn');
+const saveOffersBtn=document.getElementById('saveOffersBtn');
+const closeOffersBtn=document.getElementById('closeOffersBtn');
+
+function renderOffersModal(){
+  offersList.innerHTML='';
+  for(let key in offerInfo){
+    const div=document.createElement('div'); div.style.marginBottom='8px';
+    div.innerHTML=`<input type="text" value="${key}" class="offerName" style="width:45%;padding:4px;margin-right:4%;">
+      <input type="text" value="${offerInfo[key].description}" class="offerDesc" style="width:45%;padding:4px;margin-bottom:4px;"><br>
+      <input type="text" value="${offerInfo[key].price}" class="offerPrice" style="width:45%;padding:4px;">
+      <button type="button" class="removeOfferBtn" style="background:#f87171;color:#fff;padding:4px;border:none;border-radius:6px;margin-left:4px">حذف</button>`;
+    offersList.appendChild(div);
+    div.querySelector('.removeOfferBtn').addEventListener('click',()=>{ div.remove(); });
+  }
+}
+addOfferBtn.addEventListener('click',()=>{
+  const div=document.createElement('div'); div.style.marginBottom='8px';
+  div.innerHTML=`<input type="text" placeholder="اسم العرض" class="offerName" style="width:45%;padding:4px;margin-right:4%;">
+    <input type="text" placeholder="تفاصيل العرض" class="offerDesc" style="width:45%;padding:4px;margin-bottom:4px;"><br>
+    <input type="text" placeholder="السعر" class="offerPrice" style="width:45%;padding:4px;">
+    <button type="button" class="removeOfferBtn" style="background:#f87171;color:#fff;padding:4px;border:none;border-radius:6px;margin-left:4px">حذف</button>`;
+  offersList.appendChild(div);
+  div.querySelector('.removeOfferBtn').addEventListener('click',()=>{ div.remove(); });
+});
+manageOffersBtn.addEventListener('click',()=>{ renderOffersModal(); offersModal.style.display='flex'; });
+closeOffersBtn.addEventListener('click',()=>{ offersModal.style.display='none'; });
+saveOffersBtn.addEventListener('click',()=>{
+  const newOffers={};
+  offersList.querySelectorAll('div').forEach(div=>{
+    const name=div.querySelector('.offerName').value.trim();
+    const desc=div.querySelector('.offerDesc').value.trim();
+    const price=div.querySelector('.offerPrice').value.trim();
+    if(name) newOffers[name]={description:desc, price:price};
+  });
+  offerInfo=newOffers;
+  localStorage.setItem('offerInfo',JSON.stringify(offerInfo));
+  renderOffers();
+  offersModal.style.display='none';
+});
+
+// ======= الحجوزات =======
+let bookings=JSON.parse(localStorage.getItem('bookings'))||[];
+function saveBookings(){ localStorage.setItem('bookings',JSON.stringify(bookings)); }
+
+// حفظ فردي وإرسال واتساب
+const form=document.getElementById('bookingForm');
+form.addEventListener('submit',e=>{
+  e.preventDefault();
+  const selectedOffer=document.querySelector('input[name="offer"]:checked').value;
+  const offerText=selectedOffer==='manual'? manualOfferInput.value : selectedOffer;
+  const offerDesc=selectedOffer==='manual'? manualOfferInput.value : offerInfo[selectedOffer].description + ' — السعر: '+offerInfo[selectedOffer].price;
+  const data={
+    الاسم: form.name.value.trim(),
+    الهاتف: form.phone.value.trim(),
+    العرض: offerText,
+    التفاصيل: offerDesc,
+    الإحداثيات: latEl.value && lngEl.value ? `${latEl.value}, ${lngEl.value}` : "غير محدد",
+    ملاحظات: form.notes.value.trim()
+  };
+  bookings.push(data); saveBookings();
+  // إرسال مباشر على واتساب
+  const phoneNumber="9647512328848";
+  const message=`📢 حجز جديد:%0A👤 الاسم: ${data.الاسم}%0A📞 الهاتف: ${data.الهاتف}%0A📦 العرض: ${data.العرض}%0A📍 الإحداثيات: ${data.الإحداثيات}%0A📝 ملاحظات: ${data.ملاحظات}`;
+  window.open(`https://wa.me/${phoneNumber}?text=${message}`,"_blank");
+  alert("تم حفظ الحجز وإرساله على واتساب!");
+  form.reset(); if(marker){ map.removeLayer(marker); marker=null; coordsEl.textContent='لم يتم التحديد'; }
+});
+
+// تصدير Excel
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  if(bookings.length===0){ alert("لا توجد حجوزات لتصديرها!"); return; }
+  const ws=XLSX.utils.json_to_sheet(bookings);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"حجوزات");
+  XLSX.writeFile(wb,"حجوزات_العملاء.xlsx");
+});
+
+// نسخة احتياطية يومية
+document.getElementById('backupBtn').addEventListener('click',()=>{
+  if(bookings.length===0){ alert("لا توجد حجوزات للنسخة الاحتياطية!"); return; }
+  const date=new Date().toISOString().split('T')[0];
+  const ws=XLSX.utils.json_to_sheet(bookings);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"حجوزات");
+  XLSX.writeFile(wb,`backup_${date}.xlsx`);
+  const blob=new Blob([JSON.stringify(bookings,null,2)],{type:"application/json"});
+  const link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download=`backup_${date}.json`; link.click();
+  alert("تم إنشاء النسخة الاحتياطية بنجاح!");
+});
+
+// استيراد JSON
+const importInput=document.getElementById('importJSON');
+document.getElementById('importBtn').addEventListener('click',()=>{ importInput.click(); });
+importInput.addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(evt){
+    try{ const imported=JSON.parse(evt.target.result); if(Array.isArray(imported)){ bookings=imported; saveBookings(); alert("تم استيراد JSON بنجاح!"); }else{ alert("ملف غير صالح"); } }
+    catch(err){ alert("خطأ في قراءة الملف"); }
+  }
+  reader.readAsText(file);
+});
+
+// محو كل الحجوزات
+document.getElementById('clearAllBtn').addEventListener('click',()=>{
+  if(confirm("هل أنت متأكد من محو كل الحجوزات؟")){ bookings=[]; saveBookings(); alert("تم مسح كل الحجوزات"); }
+});
+</script>
+</body>
+</html>
