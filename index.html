@@ -1,4 +1,43 @@
-<!doctype html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -14,6 +53,10 @@
   --accent-hover: #0284c7;
   --muted: #6b7280;
   --text: #111827;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --blue: #3b82f6;
   color-scheme: light;
 }
 body {
@@ -260,6 +303,26 @@ img.logo {
 #bookingsTable .edit-btn:hover {
   background: #d97706;
 }
+.status-led {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.status-led.green {
+  background: var(--green);
+}
+.status-led.yellow {
+  background: var(--yellow);
+}
+.status-led.red {
+  background: var(--red);
+}
+.status-led.blue {
+  background: var(--blue);
+}
 .offer-item {
   margin-bottom: 8px;
   padding: 8px;
@@ -267,7 +330,7 @@ img.logo {
   border-radius: 8px;
   background: #f9fafb;
 }
-.offer-item input {
+.offer-item input, .offer-item select {
   width: 100%;
   padding: 8px;
   margin-bottom: 4px;
@@ -368,6 +431,11 @@ img.logo {
     width: 95%;
     padding: 12px;
   }
+  #bookingsTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
 }
 </style>
 </head>
@@ -421,6 +489,15 @@ img.logo {
       <textarea id="notes" name="notes" rows="3" placeholder="عنوان مفصل، طابق، ملاحظات عن الوصول..."></textarea>
     </div>
     <div>
+      <label for="status">الحالة</label>
+      <select id="status" name="status">
+        <option value="تم الاشتراك">تم الاشتراك</option>
+        <option value="يريد الاشتراك">يريد الاشتراك</option>
+        <option value="غير مشترك">غير مشترك</option>
+        <option value="تم رفض نهائي">تم رفض نهائي</option>
+      </select>
+    </div>
+    <div>
       <label>تحديد موقعك على الخريطة أو استخدم مشاركة الموقع</label>
       <div id="map"></div>
       <div style="margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:8px;">
@@ -451,6 +528,9 @@ img.logo {
           <th>الاسم</th>
           <th>رقم الهاتف</th>
           <th>العرض</th>
+          <th>ملاحظات</th>
+          <th>الحالة</th>
+          <th>الإحداثيات</th>
           <th>تعديل</th>
         </tr>
       </thead>
@@ -471,9 +551,22 @@ img.logo {
 </div>
 <div id="editOfferModal">
   <div>
-    <h2 style="margin-top:0">تعديل العرض</h2>
+    <h2 style="margin-top:0">تعديل الحجز</h2>
     <div class="offers" id="editOffersContainer"></div>
     <input type="text" id="editManualOffer" placeholder="اكتب العرض يدوياً..." style="display:none;">
+    <div>
+      <label for="editNotes">ملاحظات إضافية</label>
+      <textarea id="editNotes" name="editNotes" rows="3" placeholder="عنوان مفصل، طابق، ملاحظات عن الوصول..."></textarea>
+    </div>
+    <div>
+      <label for="editStatus">الحالة</label>
+      <select id="editStatus" name="editStatus">
+        <option value="تم الاشتراك">تم الاشتراك</option>
+        <option value="يريد الاشتراك">يريد الاشتراك</option>
+        <option value="غير مشترك">غير مشترك</option>
+        <option value="تم رفض نهائي">تم رفض نهائي</option>
+      </select>
+    </div>
     <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:8px;">
       <button type="button" class="btn" id="saveEditOfferBtn">حفظ التعديل</button>
       <button type="button" class="btn" style="background:#f87171" id="closeEditOfferBtn">إغلاق</button>
@@ -546,19 +639,28 @@ function renderBookingsTable() {
         }
         let html = '';
         if (bookings.length === 0) {
-            html = '<tr><td colspan="4" style="text-align:center;color:var(--muted);">لا توجد حجوزات</td></tr>';
+            html = '<tr><td colspan="7" style="text-align:center;color:var(--muted);">لا توجد حجوزات</td></tr>';
         } else {
             bookings.forEach((booking, index) => {
                 if (!booking || !booking.الاسم || !booking.الهاتف || !booking.العرض) {
                     console.warn('حجز غير صالح في الفهرس:', index, booking);
                     return;
                 }
+                const statusClass = {
+                    'تم الاشتراك': 'green',
+                    'يريد الاشتراك': 'yellow',
+                    'غير مشترك': 'red',
+                    'تم رفض نهائي': 'blue'
+                }[booking.الحالة] || 'red';
                 html += `
                     <tr>
                         <td>${booking.الاسم || 'غير محدد'}</td>
                         <td>${booking.الهاتف || 'غير محدد'}</td>
                         <td>${booking.العرض || 'غير محدد'}</td>
-                        <td><button class="edit-btn" data-index="${index}">تعديل العرض</button></td>
+                        <td>${booking.ملاحظات || 'لا توجد ملاحظات'}</td>
+                        <td><span class="status-led ${statusClass}"></span> ${booking.الحالة || 'غير مشترك'}</td>
+                        <td>${booking.الإحداثيات || 'غير محدد'}</td>
+                        <td><button class="edit-btn" data-index="${index}">تعديل</button></td>
                     </tr>`;
             });
         }
@@ -613,7 +715,7 @@ document.getElementById('clearTodayBtn').addEventListener('click', () => {
     }
 });
 
-// ======= تعديل العرض =======
+// ======= تعديل الحجز =======
 let currentEditIndex = null;
 function openEditOfferModal(index) {
     try {
@@ -645,8 +747,12 @@ function openEditOfferModal(index) {
         manualLabel.appendChild(document.createTextNode(' كتابة العرض يدوياً'));
         editOffersContainer.appendChild(manualLabel);
         const editManualOfferInput = document.getElementById('editManualOffer');
+        const editNotesInput = document.getElementById('editNotes');
+        const editStatusSelect = document.getElementById('editStatus');
         editManualOfferInput.style.display = 'none';
         editManualOfferInput.value = '';
+        editNotesInput.value = bookings[index].ملاحظات || '';
+        editStatusSelect.value = bookings[index].الحالة || 'غير مشترك';
         const currentOffer = bookings[index].العرض || '';
         const isManual = !offerInfo[currentOffer];
         if (isManual) {
@@ -663,7 +769,7 @@ function openEditOfferModal(index) {
         }
         document.getElementById('editOfferModal').style.display = 'flex';
     } catch (error) {
-        console.error('خطأ في فتح نافذة تعديل العرض:', error);
+        console.error('خطأ في فتح نافذة تعديل الحجز:', error);
         alert('حدث خطأ أثناء فتح نافذة التعديل.');
     }
 }
@@ -684,11 +790,13 @@ document.getElementById('saveEditOfferBtn').addEventListener('click', () => {
             (offerInfo[selectedOffer] ? offerInfo[selectedOffer].description + ' — السعر: ' + offerInfo[selectedOffer].price : selectedOffer);
         bookings[currentEditIndex].العرض = offerText;
         bookings[currentEditIndex].التفاصيل = offerDesc;
+        bookings[currentEditIndex].ملاحظات = document.getElementById('editNotes').value.trim();
+        bookings[currentEditIndex].الحالة = document.getElementById('editStatus').value;
         saveBookings();
         document.getElementById('editOfferModal').style.display = 'none';
-        alert('تم تعديل العرض بنجاح!');
+        alert('تم تعديل الحجز بنجاح!');
     } catch (error) {
-        console.error('خطأ في حفظ تعديل العرض:', error);
+        console.error('خطأ في حفظ تعديل الحجز:', error);
         alert('حدث خطأ أثناء حفظ التعديل.');
     }
 });
@@ -696,7 +804,7 @@ document.getElementById('closeEditOfferBtn').addEventListener('click', () => {
     try {
         document.getElementById('editOfferModal').style.display = 'none';
     } catch (error) {
-        console.error('خطأ في إغلاق نافذة تعديل العرض:', error);
+        console.error('خطأ في إغلاق نافذة تعديل الحجز:', error);
     }
 });
 document.getElementById('editOffersContainer').addEventListener('change', () => {
@@ -708,7 +816,7 @@ document.getElementById('editOffersContainer').addEventListener('change', () => 
             document.getElementById('editManualOffer').style.display = 'none';
         }
     } catch (error) {
-        console.error('خطأ في تحديث نافذة تعديل العرض:', error);
+        console.error('خطأ في تحديث نافذة تعديل الحجز:', error);
     }
 });
 document.getElementById('editManualOffer').addEventListener('input', () => {
@@ -1006,6 +1114,7 @@ form.addEventListener('submit', function(e) {
             التفاصيل: offerDesc,
             الإحداثيات: latEl.value && lngEl.value ? `${latEl.value}, ${lngEl.value}` : "غير محدد",
             ملاحظات: form.notes.value.trim(),
+            الحالة: form.status.value,
             التاريخ: new Date().toISOString()
         };
         console.log('حجز جديد:', data);
@@ -1018,7 +1127,8 @@ form.addEventListener('submit', function(e) {
 📦 العرض: ${data.العرض}
 📍 الإحداثيات: ${data.الإحداثيات}
 📝 ملاحظات: ${data.ملاحظات.substring(0, 500)}
-📅 التاريخ: ${new Date(data.التاريخ).toLocaleString('ar-IQ')}`);
+📅 التاريخ: ${new Date(data.التاريخ).toLocaleString('ar-IQ')}
+📊 الحالة: ${data.الحالة}`);
         window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
         alert("تم حفظ الحجز وإرساله على واتساب!");
         form.reset();
@@ -1091,7 +1201,7 @@ document.getElementById('backupBtn').addEventListener('click', () => {
         URL.revokeObjectURL(xlsxUrl);
         const jsonBlob = new Blob([JSON.stringify(bookings, null, 2)], {type: "application/json"});
         const jsonUrl = URL.createObjectURL(jsonBlob);
-        const jsonA = document.createElement("a");
+        const jsonA = document.createElement('a');
         jsonA.href = jsonUrl;
         jsonA.download = `backup_${date}.json`;
         document.body.appendChild(jsonA);
