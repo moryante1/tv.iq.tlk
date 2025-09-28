@@ -492,7 +492,7 @@ img.logo {
       <label for="status">الحالة</label>
       <select id="status" name="status">
         <option value="تم الاشتراك">تم الاشتراك</option>
-        <option value="يريد الاشتراك">يريد الاشتراك</option>
+        <option value="غير موافق">غير موافق</option>
         <option value="غير مشترك">غير مشترك</option>
         <option value="تم رفض نهائي">تم رفض نهائي</option>
       </select>
@@ -562,7 +562,7 @@ img.logo {
       <label for="editStatus">الحالة</label>
       <select id="editStatus" name="editStatus">
         <option value="تم الاشتراك">تم الاشتراك</option>
-        <option value="يريد الاشتراك">يريد الاشتراك</option>
+        <option value="غير موافق"> غير موافق</option>
         <option value="غير مشترك">غير مشترك</option>
         <option value="تم رفض نهائي">تم رفض نهائي</option>
       </select>
@@ -648,7 +648,7 @@ function renderBookingsTable() {
                 }
                 const statusClass = {
                     'تم الاشتراك': 'green',
-                    'يريد الاشتراك': 'yellow',
+                    'غير موافق': 'yellow',
                     'غير مشترك': 'red',
                     'تم رفض نهائي': 'blue'
                 }[booking.الحالة] || 'red';
