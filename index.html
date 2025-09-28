@@ -487,10 +487,10 @@ img.logo {
   <div class="bookings-section" id="bookingsSection">
     <div class="bookings-title">قائمة الحجوزات</div>
     <div style="margin-bottom:12px;">
-      <label for="deleteByName">حذف حجز بالاسم</label>
+      <label for="searchByName">البحث عن حجز بالاسم</label>
       <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
-        <input type="text" id="deleteByName" placeholder="أدخل اسم العميل" />
-        <button type="button" class="btn" style="background:#ef4444" id="deleteByNameBtn">حذف</button>
+        <input type="text" id="searchByName" placeholder="أدخل اسم العميل" />
+        <button type="button" class="btn" style="background:#6366f1" id="searchByNameBtn">بحث</button>
       </div>
     </div>
     <table id="bookingsTable">
@@ -614,23 +614,30 @@ function updatePopularOffers() {
 }
 
 // ======= الجدول =======
-function renderBookingsTable() {
+let currentSearchQuery = '';
+function renderBookingsTable(searchQuery = '') {
     try {
-        console.log('عرض الجدول: عدد الحجوزات =', bookings.length, 'الحجوزات:', bookings);
+        console.log('عرض الجدول: عدد الحجوزات =', bookings.length, 'استعلام البحث:', searchQuery);
         const tbody = document.getElementById('bookingsTableBody');
         if (!tbody) {
             console.error('عنصر bookingsTableBody غير موجود');
             return;
         }
         let html = '';
-        if (bookings.length === 0) {
-            html = '<tr><td colspan="8" style="text-align:center;color:var(--muted);">لا توجد حجوزات</td></tr>';
+        const filteredBookings = searchQuery ? 
+            bookings.filter(booking => booking.الاسم.toLowerCase().includes(searchQuery.toLowerCase())) : 
+            bookings;
+        if (filteredBookings.length === 0) {
+            html = `<tr><td colspan="8" style="text-align:center;color:var(--muted);">
+                ${searchQuery ? 'لا توجد حجوزات مطابقة لـ "' + searchQuery + '"' : 'لا توجد حجوزات'}
+                </td></tr>`;
         } else {
-            bookings.forEach((booking, index) => {
+            filteredBookings.forEach((booking, index) => {
                 if (!booking || !booking.الاسم || !booking.الهاتف || !booking.العرض) {
                     console.warn('حجز غير صالح في الفهرس:', index, booking);
                     return;
                 }
+                const originalIndex = bookings.indexOf(booking);
                 const statusClass = {
                     'تم الاشتراك': 'green',
                     'غير موافق': 'yellow',
@@ -645,8 +652,8 @@ function renderBookingsTable() {
                         <td>${booking.ملاحظات || 'لا توجد ملاحظات'}</td>
                         <td><span class="status-led ${statusClass}"></span> ${booking.الحالة || 'غير مشترك'}</td>
                         <td>${booking.الإحداثيات || 'غير محدد'}</td>
-                        <td><button class="edit-btn" data-index="${index}">تعديل</button></td>
-                        <td><button class="delete-btn" data-index="${index}">حذف</button></td>
+                        <td><button class="edit-btn" data-index="${originalIndex}">تعديل</button></td>
+                        <td><button class="delete-btn" data-index="${originalIndex}">حذف</button></td>
                     </tr>`;
             });
         }
@@ -665,6 +672,7 @@ function renderBookingsTable() {
                     bookings.splice(index, 1);
                     saveBookings();
                     alert('تم حذف الحجز بنجاح!');
+                    renderBookingsTable(currentSearchQuery);
                 }
             });
         });
@@ -674,6 +682,27 @@ function renderBookingsTable() {
     }
 }
 
+// ======= البحث عن الحجوزات =======
+document.getElementById('searchByNameBtn').addEventListener('click', () => {
+    try {
+        const searchQuery = document.getElementById('searchByName').value.trim();
+        currentSearchQuery = searchQuery;
+        renderBookingsTable(searchQuery);
+    } catch (error) {
+        console.error('خطأ في البحث عن الحجوزات:', error);
+        alert('حدث خطأ أثناء البحث.');
+    }
+});
+document.getElementById('searchByName').addEventListener('input', () => {
+    try {
+        const searchQuery = document.getElementById('searchByName').value.trim();
+        currentSearchQuery = searchQuery;
+        renderBookingsTable(searchQuery);
+    } catch (error) {
+        console.error('خطأ في تحديث البحث:', error);
+    }
+});
+
 // ======= إظهار/إخفاء الجدول =======
 const toggleTableBtn = document.getElementById('toggleTableBtn');
 const bookingsSection = document.getElementById('bookingsSection');
@@ -682,7 +711,7 @@ toggleTableBtn.addEventListener('click', () => {
         if (bookingsSection.style.display === 'none') {
             bookingsSection.style.display = 'block';
             toggleTableBtn.textContent = 'إخفاء القائمة';
-            renderBookingsTable();
+            renderBookingsTable(currentSearchQuery);
         } else {
             bookingsSection.style.display = 'none';
             toggleTableBtn.textContent = 'إظهار القائمة';
@@ -704,34 +733,12 @@ document.getElementById('clearTodayBtn').addEventListener('click', () => {
             });
             localStorage.setItem('bookings', JSON.stringify(bookings));
             updateStats();
+            renderBookingsTable(currentSearchQuery);
             alert('تم حذف حجوزات اليوم بنجاح!');
         }
     } catch (error) {
         console.error('خطأ في حذف حجوزات اليوم:', error);
         alert('حدث خطأ أثناء حذف حجوزات اليوم.');
-    }
-});
-
-// ======= حذف حجز بالاسم =======
-document.getElementById('deleteByNameBtn').addEventListener('click', () => {
-    try {
-        const name = document.getElementById('deleteByName').value.trim();
-        if (!name) {
-            alert('يرجى إدخال اسم العميل.');
-            return;
-        }
-        const initialLength = bookings.length;
-        bookings = bookings.filter(booking => booking.الاسم !== name);
-        if (bookings.length === initialLength) {
-            alert(`لم يتم العثور على حجز باسم ${name}.`);
-            return;
-        }
-        saveBookings();
-        document.getElementById('deleteByName').value = '';
-        alert(`تم حذف جميع الحجوزات باسم ${name} بنجاح!`);
-    } catch (error) {
-        console.error('خطأ في حذف الحجز بالاسم:', error);
-        alert('حدث خطأ أثناء حذف الحجز.');
     }
 });
 
@@ -800,6 +807,12 @@ function openEditOfferModal(index) {
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(editMap);
+        } else {
+            editMap.setView([36.3719, 43.1228], 12);
+        }
+        if (editMarker) {
+            editMap.removeLayer(editMarker);
+            editMarker = null;
         }
         if (editLatInput.value && editLngInput.value) {
             const lat = parseFloat(editLatInput.value);
@@ -808,9 +821,6 @@ function openEditOfferModal(index) {
                 editMarker = L.marker([lat, lng]).addTo(editMap);
                 editMap.flyTo([lat, lng], 16);
             }
-        } else if (editMarker) {
-            editMap.removeLayer(editMarker);
-            editMarker = null;
         }
         document.getElementById('editOfferModal').style.display = 'flex';
     } catch (error) {
@@ -844,6 +854,7 @@ document.getElementById('saveEditOfferBtn').addEventListener('click', () => {
         saveBookings();
         document.getElementById('editOfferModal').style.display = 'none';
         alert('تم تعديل الحجز بنجاح!');
+        renderBookingsTable(currentSearchQuery);
     } catch (error) {
         console.error('خطأ في حفظ تعديل الحجز:', error);
         alert('حدث خطأ أثناء حفظ التعديل.');
@@ -852,6 +863,10 @@ document.getElementById('saveEditOfferBtn').addEventListener('click', () => {
 document.getElementById('closeEditOfferBtn').addEventListener('click', () => {
     try {
         document.getElementById('editOfferModal').style.display = 'none';
+        if (editMarker) {
+            editMap.removeLayer(editMarker);
+            editMarker = null;
+        }
     } catch (error) {
         console.error('خطأ في إغلاق نافذة تعديل الحجز:', error);
     }
@@ -1170,6 +1185,7 @@ function saveBookings() {
         bookings = JSON.parse(localStorage.getItem('bookings')) || [];
         console.log('الحجوزات بعد الحفظ:', bookings);
         updateStats();
+        renderBookingsTable(currentSearchQuery);
     } catch (error) {
         console.error('خطأ في حفظ الحجوزات:', error);
         alert('حدث خطأ أثناء حفظ الحجوزات.');
