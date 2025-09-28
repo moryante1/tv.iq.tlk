@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!doctype html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -290,7 +251,7 @@ img.logo {
 #bookingsTable tr:nth-child(even) {
   background: #f9fafb;
 }
-#bookingsTable .edit-btn {
+#bookingsTable .edit-btn, #bookingsTable .delete-btn {
   background: #f59e0b;
   padding: 6px 12px;
   border-radius: 4px;
@@ -298,10 +259,16 @@ img.logo {
   border: none;
   cursor: pointer;
   font-size: 12px;
-  width: 100%;
+  width: auto;
+}
+#bookingsTable .delete-btn {
+  background: #ef4444;
 }
 #bookingsTable .edit-btn:hover {
   background: #d97706;
+}
+#bookingsTable .delete-btn:hover {
+  background: #dc2626;
 }
 .status-led {
   display: inline-block;
@@ -374,9 +341,6 @@ img.logo {
   #bookingsTable th, #bookingsTable td {
     padding: 10px;
     font-size: 14px;
-  }
-  #bookingsTable .edit-btn {
-    width: auto;
   }
 }
 @media (max-width: 767px) {
@@ -522,6 +486,13 @@ img.logo {
   </form>
   <div class="bookings-section" id="bookingsSection">
     <div class="bookings-title">قائمة الحجوزات</div>
+    <div style="margin-bottom:12px;">
+      <label for="deleteByName">حذف حجز بالاسم</label>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;">
+        <input type="text" id="deleteByName" placeholder="أدخل اسم العميل" />
+        <button type="button" class="btn" style="background:#ef4444" id="deleteByNameBtn">حذف</button>
+      </div>
+    </div>
     <table id="bookingsTable">
       <thead>
         <tr>
@@ -532,6 +503,7 @@ img.logo {
           <th>الحالة</th>
           <th>الإحداثيات</th>
           <th>تعديل</th>
+          <th>حذف</th>
         </tr>
       </thead>
       <tbody id="bookingsTableBody"></tbody>
@@ -562,10 +534,23 @@ img.logo {
       <label for="editStatus">الحالة</label>
       <select id="editStatus" name="editStatus">
         <option value="تم الاشتراك">تم الاشتراك</option>
-        <option value="غير موافق"> غير موافق</option>
+        <option value="غير موافق">غير موافق</option>
         <option value="غير مشترك">غير مشترك</option>
         <option value="تم رفض نهائي">تم رفض نهائي</option>
       </select>
+    </div>
+    <div>
+      <label>الإحداثيات</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <input type="text" id="editLat" placeholder="خط العرض" />
+        <input type="text" id="editLng" placeholder="خط الطول" />
+      </div>
+      <div style="margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:8px;">
+        <button type="button" class="btn" id="editLocateBtn">مشاركة الموقع</button>
+        <button type="button" class="btn" id="editPickBtn">اختر نقطة</button>
+        <button type="button" class="btn" style="background:#f87171" id="editClearBtn">محو الإحداثيات</button>
+      </div>
+      <div id="editMap" style="height:200px;margin-top:8px;border-radius:8px;border:1px solid #e5e7eb;"></div>
     </div>
     <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:8px;">
       <button type="button" class="btn" id="saveEditOfferBtn">حفظ التعديل</button>
@@ -639,7 +624,7 @@ function renderBookingsTable() {
         }
         let html = '';
         if (bookings.length === 0) {
-            html = '<tr><td colspan="7" style="text-align:center;color:var(--muted);">لا توجد حجوزات</td></tr>';
+            html = '<tr><td colspan="8" style="text-align:center;color:var(--muted);">لا توجد حجوزات</td></tr>';
         } else {
             bookings.forEach((booking, index) => {
                 if (!booking || !booking.الاسم || !booking.الهاتف || !booking.العرض) {
@@ -661,6 +646,7 @@ function renderBookingsTable() {
                         <td><span class="status-led ${statusClass}"></span> ${booking.الحالة || 'غير مشترك'}</td>
                         <td>${booking.الإحداثيات || 'غير محدد'}</td>
                         <td><button class="edit-btn" data-index="${index}">تعديل</button></td>
+                        <td><button class="delete-btn" data-index="${index}">حذف</button></td>
                     </tr>`;
             });
         }
@@ -669,6 +655,17 @@ function renderBookingsTable() {
             btn.addEventListener('click', () => {
                 const index = btn.getAttribute('data-index');
                 openEditOfferModal(index);
+            });
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const index = btn.getAttribute('data-index');
+                const booking = bookings[index];
+                if (confirm(`هل أنت متأكد من حذف حجز ${booking.الاسم}؟`)) {
+                    bookings.splice(index, 1);
+                    saveBookings();
+                    alert('تم حذف الحجز بنجاح!');
+                }
             });
         });
     } catch (error) {
@@ -715,8 +712,32 @@ document.getElementById('clearTodayBtn').addEventListener('click', () => {
     }
 });
 
+// ======= حذف حجز بالاسم =======
+document.getElementById('deleteByNameBtn').addEventListener('click', () => {
+    try {
+        const name = document.getElementById('deleteByName').value.trim();
+        if (!name) {
+            alert('يرجى إدخال اسم العميل.');
+            return;
+        }
+        const initialLength = bookings.length;
+        bookings = bookings.filter(booking => booking.الاسم !== name);
+        if (bookings.length === initialLength) {
+            alert(`لم يتم العثور على حجز باسم ${name}.`);
+            return;
+        }
+        saveBookings();
+        document.getElementById('deleteByName').value = '';
+        alert(`تم حذف جميع الحجوزات باسم ${name} بنجاح!`);
+    } catch (error) {
+        console.error('خطأ في حذف الحجز بالاسم:', error);
+        alert('حدث خطأ أثناء حذف الحجز.');
+    }
+});
+
 // ======= تعديل الحجز =======
 let currentEditIndex = null;
+let editMap, editMarker;
 function openEditOfferModal(index) {
     try {
         currentEditIndex = index;
@@ -749,6 +770,8 @@ function openEditOfferModal(index) {
         const editManualOfferInput = document.getElementById('editManualOffer');
         const editNotesInput = document.getElementById('editNotes');
         const editStatusSelect = document.getElementById('editStatus');
+        const editLatInput = document.getElementById('editLat');
+        const editLngInput = document.getElementById('editLng');
         editManualOfferInput.style.display = 'none';
         editManualOfferInput.value = '';
         editNotesInput.value = bookings[index].ملاحظات || '';
@@ -766,6 +789,28 @@ function openEditOfferModal(index) {
         } else {
             document.getElementById('edit-offer-manual').checked = true;
             editManualOfferInput.style.display = 'block';
+        }
+        // تحميل الإحداثيات
+        const coords = bookings[index].الإحداثيات?.split(',') || [];
+        editLatInput.value = coords[0]?.trim() || '';
+        editLngInput.value = coords[1]?.trim() || '';
+        // إعداد الخريطة
+        if (!editMap) {
+            editMap = L.map('editMap', { zoomControl: true }).setView([36.3719, 43.1228], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(editMap);
+        }
+        if (editLatInput.value && editLngInput.value) {
+            const lat = parseFloat(editLatInput.value);
+            const lng = parseFloat(editLngInput.value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                editMarker = L.marker([lat, lng]).addTo(editMap);
+                editMap.flyTo([lat, lng], 16);
+            }
+        } else if (editMarker) {
+            editMap.removeLayer(editMarker);
+            editMarker = null;
         }
         document.getElementById('editOfferModal').style.display = 'flex';
     } catch (error) {
@@ -788,10 +833,14 @@ document.getElementById('saveEditOfferBtn').addEventListener('click', () => {
         }
         const offerDesc = selectedOffer === 'manual' ? offerText :
             (offerInfo[selectedOffer] ? offerInfo[selectedOffer].description + ' — السعر: ' + offerInfo[selectedOffer].price : selectedOffer);
+        const lat = document.getElementById('editLat').value.trim();
+        const lng = document.getElementById('editLng').value.trim();
+        const coords = lat && lng ? `${lat}, ${lng}` : 'غير محدد';
         bookings[currentEditIndex].العرض = offerText;
         bookings[currentEditIndex].التفاصيل = offerDesc;
         bookings[currentEditIndex].ملاحظات = document.getElementById('editNotes').value.trim();
         bookings[currentEditIndex].الحالة = document.getElementById('editStatus').value;
+        bookings[currentEditIndex].الإحداثيات = coords;
         saveBookings();
         document.getElementById('editOfferModal').style.display = 'none';
         alert('تم تعديل الحجز بنجاح!');
@@ -826,6 +875,54 @@ document.getElementById('editManualOffer').addEventListener('input', () => {
         }
     } catch (error) {
         console.error('خطأ في تحديث العرض اليدوي:', error);
+    }
+});
+document.getElementById('editLocateBtn').addEventListener('click', () => {
+    if (!navigator.geolocation) {
+        alert('المتصفح لا يدعم تحديد الموقع.');
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            document.getElementById('editLat').value = lat.toFixed(6);
+            document.getElementById('editLng').value = lng.toFixed(6);
+            if (editMarker) editMap.removeLayer(editMarker);
+            editMarker = L.marker([lat, lng]).addTo(editMap);
+            editMap.flyTo([lat, lng], 16);
+        },
+        err => {
+            let message;
+            switch (err.code) {
+                case err.PERMISSION_DENIED: message = 'تم رفض الوصول إلى الموقع.'; break;
+                case err.POSITION_UNAVAILABLE: message = 'معلومات الموقع غير متوفرة.'; break;
+                case err.TIMEOUT: message = 'انتهت مهلة طلب الموقع.'; break;
+                default: message = 'خطأ غير معروف: ' + err.message;
+            }
+            alert('فشل في الحصول على الموقع: ' + message);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+});
+document.getElementById('editPickBtn').addEventListener('click', () => {
+    alert('اضغط على الخريطة لتحديد الموقع.');
+    const onClick = (e) => {
+        document.getElementById('editLat').value = e.latlng.lat.toFixed(6);
+        document.getElementById('editLng').value = e.latlng.lng.toFixed(6);
+        if (editMarker) editMap.removeLayer(editMarker);
+        editMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(editMap);
+        editMap.flyTo([e.latlng.lat, e.latlng.lng], 16);
+        editMap.off('click', onClick);
+    };
+    editMap.on('click', onClick);
+});
+document.getElementById('editClearBtn').addEventListener('click', () => {
+    document.getElementById('editLat').value = '';
+    document.getElementById('editLng').value = '';
+    if (editMarker) {
+        editMap.removeLayer(editMarker);
+        editMarker = null;
     }
 });
 
@@ -1263,6 +1360,38 @@ document.getElementById('clearAllBtn').addEventListener('click', () => {
         alert('حدث خطأ أثناء محو الحجوزات.');
     }
 });
+
+// ======= معالجة ملفات Excel (غير مستخدم حاليًا) =======
+var gk_isXlsx = false;
+var gk_xlsxFileLookup = {};
+var gk_fileData = {};
+function filledCell(cell) {
+    return cell !== '' && cell != null;
+}
+function loadFileData(filename) {
+    if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+        try {
+            var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+            var firstSheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[firstSheetName];
+            var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+            var filteredData = jsonData.filter(row => row.some(filledCell));
+            var headerRowIndex = filteredData.findIndex((row, index) =>
+                row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+            );
+            if (headerRowIndex === -1 || headerRowIndex > 25) {
+                headerRowIndex = 0;
+            }
+            var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+            csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+            return csv;
+        } catch (e) {
+            console.error(e);
+            return "";
+        }
+    }
+    return gk_fileData[filename] || "";
+}
 </script>
 </body>
 </html>
