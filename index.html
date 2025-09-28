@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!doctype html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -272,25 +233,25 @@ function renderBookingsTable() {
             console.error('عنصر bookingsTableBody غير موجود');
             return;
         }
-        tbody.innerHTML = '';
+        let html = '';
         if (bookings.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);">لا توجد حجوزات</td></tr>';
-            return;
+            html = '<tr><td colspan="4" style="text-align:center;color:var(--muted);">لا توجد حجوزات</td></tr>';
+        } else {
+            bookings.forEach((booking, index) => {
+                if (!booking || !booking.الاسم || !booking.الهاتف || !booking.العرض) {
+                    console.warn('حجز غير صالح في الفهرس:', index, booking);
+                    return;
+                }
+                html += `
+                    <tr>
+                        <td>${booking.الاسم || 'غير محدد'}</td>
+                        <td>${booking.الهاتف || 'غير محدد'}</td>
+                        <td>${booking.العرض || 'غير محدد'}</td>
+                        <td><button class="edit-btn" data-index="${index}">تعديل العرض</button></td>
+                    </tr>`;
+            });
         }
-        bookings.forEach((booking, index) => {
-            if (!booking || !booking.الاسم || !booking.الهاتف || !booking.العرض) {
-                console.warn('حجز غير صالح في الفهرس:', index, booking);
-                return;
-            }
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${booking.الاسم || 'غير محدد'}</td>
-                <td>${booking.الهاتف || 'غير محدد'}</td>
-                <td>${booking.العرض || 'غير محدد'}</td>
-                <td><button class="edit-btn" data-index="${index}">تعديل العرض</button></td>
-            `;
-            tbody.appendChild(tr);
-        });
+        tbody.innerHTML = html;
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const index = btn.getAttribute('data-index');
@@ -311,7 +272,7 @@ toggleTableBtn.addEventListener('click', () => {
         if (bookingsSection.style.display === 'none') {
             bookingsSection.style.display = 'block';
             toggleTableBtn.textContent = 'إخفاء القائمة';
-            renderBookingsTable(); // إعادة عرض الجدول عند الإظهار
+            renderBookingsTable();
         } else {
             bookingsSection.style.display = 'none';
             toggleTableBtn.textContent = 'إظهار القائمة';
@@ -331,7 +292,8 @@ document.getElementById('clearTodayBtn').addEventListener('click', () => {
                 const bookingDate = new Date(booking.التاريخ).toISOString().split('T')[0];
                 return bookingDate !== today;
             });
-            saveBookings();
+            localStorage.setItem('bookings', JSON.stringify(bookings));
+            updateStats();
             alert('تم حذف حجوزات اليوم بنجاح!');
         }
     } catch (error) {
@@ -689,11 +651,9 @@ function saveBookings() {
     try {
         console.log('حفظ الحجوزات:', bookings);
         localStorage.setItem('bookings', JSON.stringify(bookings));
-        // إعادة تحميل الحجوزات من localStorage لضمان الاتساق
         bookings = JSON.parse(localStorage.getItem('bookings')) || [];
         console.log('الحجوزات بعد الحفظ:', bookings);
         updateStats();
-        renderBookingsTable();
     } catch (error) {
         console.error('خطأ في حفظ الحجوزات:', error);
         alert('حدث خطأ أثناء حفظ الحجوزات.');
@@ -726,7 +686,7 @@ form.addEventListener('submit', function(e) {
             alert('يرجى كتابة تفاصيل العرض اليدوي.');
             return;
         }
-        const offerDesc = selectedOffer === 'manual' ? manualOfferInput.value.trim() :
+        const offerDesc = selectedOffer === 'manual' ? offerText :
             (offerInfo[selectedOffer] ? offerInfo[selectedOffer].description + ' — السعر: ' + offerInfo[selectedOffer].price : selectedOffer);
         const data = {
             الاسم: name,
@@ -735,7 +695,7 @@ form.addEventListener('submit', function(e) {
             التفاصيل: offerDesc,
             الإحداثيات: latEl.value && lngEl.value ? `${latEl.value}, ${lngEl.value}` : "غير محدد",
             ملاحظات: form.notes.value.trim(),
-            التاريخ: new Date().toLocaleString('ar-IQ')
+            التاريخ: new Date().toISOString()
         };
         console.log('حجز جديد:', data);
         bookings.push(data);
@@ -747,7 +707,7 @@ form.addEventListener('submit', function(e) {
 📦 العرض: ${data.العرض}
 📍 الإحداثيات: ${data.الإحداثيات}
 📝 ملاحظات: ${data.ملاحظات.substring(0, 500)}
-📅 التاريخ: ${data.التاريخ}`);
+📅 التاريخ: ${new Date(data.التاريخ).toLocaleString('ar-IQ')}`);
         window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
         alert("تم حفظ الحجز وإرساله على واتساب!");
         form.reset();
@@ -759,45 +719,74 @@ form.addEventListener('submit', function(e) {
             lngEl.value = '';
         }
         renderOffers();
-        // إضافة تأخير طفيف لضمان تحديث DOM
-        setTimeout(() => {
-            renderBookingsTable();
-            console.log('تم استدعاء renderBookingsTable بعد الإرسال');
-        }, 100);
     } catch (error) {
         console.error('خطأ في إرسال الحجز:', error);
         alert('حدث خطأ أثناء حفظ الحجز أو إرساله. يرجى المحاولة مرة أخرى.');
     }
 });
 
-// تصدير Excel
+// ======= تصدير Excel =======
+function s2ab(s) {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+    return buf;
+}
 document.getElementById('exportBtn').addEventListener('click', () => {
     try {
-        if (bookings.length === 0) { alert("لا توجد حجوزات لتصديرها!"); return; }
+        if (bookings.length === 0) {
+            alert("لا توجد حجوزات لتصديرها!");
+            return;
+        }
         const ws = XLSX.utils.json_to_sheet(bookings);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "حجوزات");
-        XLSX.writeFile(wb, "حجوزات_العملاء.xlsx");
+        const wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'binary'});
+        const blob = new Blob([s2ab(wbout)], {type: "application/octet-stream"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "حجوزات_العملاء.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     } catch (error) {
         console.error('خطأ في تصدير Excel:', error);
         alert('حدث خطأ أثناء تصدير الحجوزات.');
     }
 });
 
-// نسخة احتياطية يومية
+// ======= نسخة احتياطية يومية =======
 document.getElementById('backupBtn').addEventListener('click', () => {
     try {
-        if (bookings.length === 0) { alert("لا توجد حجوزات للنسخة الاحتياطية!"); return; }
+        if (bookings.length === 0) {
+            alert("لا توجد حجوزات للنسخة الاحتياطية!");
+            return;
+        }
         const date = new Date().toISOString().split('T')[0];
         const ws = XLSX.utils.json_to_sheet(bookings);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "حجوزات");
-        XLSX.writeFile(wb, `backup_${date}.xlsx`);
-        const blob = new Blob([JSON.stringify(bookings, null, 2)], {type: "application/json"});
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `backup_${date}.json`;
-        link.click();
+        const wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'binary'});
+        const xlsxBlob = new Blob([s2ab(wbout)], {type: "application/octet-stream"});
+        const xlsxUrl = URL.createObjectURL(xlsxBlob);
+        const xlsxA = document.createElement("a");
+        xlsxA.href = xlsxUrl;
+        xlsxA.download = `backup_${date}.xlsx`;
+        document.body.appendChild(xlsxA);
+        xlsxA.click();
+        document.body.removeChild(xlsxA);
+        URL.revokeObjectURL(xlsxUrl);
+        const jsonBlob = new Blob([JSON.stringify(bookings, null, 2)], {type: "application/json"});
+        const jsonUrl = URL.createObjectURL(jsonBlob);
+        const jsonA = document.createElement("a");
+        jsonA.href = jsonUrl;
+        jsonA.download = `backup_${date}.json`;
+        document.body.appendChild(jsonA);
+        jsonA.click();
+        document.body.removeChild(jsonA);
+        URL.revokeObjectURL(jsonUrl);
         alert("تم إنشاء النسخة الاحتياطية بنجاح!");
     } catch (error) {
         console.error('خطأ في إنشاء النسخة الاحتياطية:', error);
@@ -805,9 +794,11 @@ document.getElementById('backupBtn').addEventListener('click', () => {
     }
 });
 
-// استيراد JSON
+// ======= استيراد JSON =======
 const importInput = document.getElementById('importJSON');
-document.getElementById('importBtn').addEventListener('click', () => { importInput.click(); });
+document.getElementById('importBtn').addEventListener('click', () => {
+    importInput.click();
+});
 importInput.addEventListener('change', function(e) {
     try {
         const file = e.target.files[0];
@@ -817,7 +808,6 @@ importInput.addEventListener('change', function(e) {
             try {
                 const imported = JSON.parse(evt.target.result);
                 if (Array.isArray(imported)) {
-                    // فحص صحة الحجوزات المستوردة
                     const validBookings = imported.filter(booking => 
                         booking && booking.الاسم && booking.الهاتف && booking.العرض
                     );
@@ -839,7 +829,7 @@ importInput.addEventListener('change', function(e) {
     }
 });
 
-// محو كل الحجوزات
+// ======= محو كل الحجوزات =======
 document.getElementById('clearAllBtn').addEventListener('click', () => {
     try {
         if (confirm("هل أنت متأكد من محو كل الحجوزات؟")) {
