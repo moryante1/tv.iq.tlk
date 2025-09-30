@@ -473,6 +473,11 @@
             color: white;
         }
 
+        .table-btn.call {
+            background: var(--secondary);
+            color: white;
+        }
+
         .table-btn:hover {
             opacity: 0.9;
             transform: scale(1.05);
@@ -582,6 +587,28 @@
 
         .empty-state p {
             font-size: 16px;
+        }
+
+        .phone-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .phone-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .duplicate-warning {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
         }
 
         @media (max-width: 768px) {
@@ -740,6 +767,9 @@
                             <div class="input-group">
                                 <i class="fas fa-user input-icon"></i>
                                 <input id="name" name="name" type="text" placeholder="أدخل الاسم الكامل" required class="with-icon">
+                                <div class="duplicate-warning" id="nameWarning">
+                                    <i class="fas fa-exclamation-triangle"></i> هذا الاسم موجود مسبقاً في النظام
+                                </div>
                             </div>
                         </div>
                         <div class="form-group">
@@ -858,6 +888,7 @@
                         <tr>
                             <th>الاسم</th>
                             <th>رقم الهاتف</th>
+                            <th>الاتصال</th>
                             <th>اسم الوكيل</th>
                             <th>PPPoE</th>
                             <th>العرض</th>
@@ -870,7 +901,7 @@
                     </thead>
                     <tbody id="bookingsTableBody">
                         <tr>
-                            <td colspan="10" class="empty-state">
+                            <td colspan="11" class="empty-state">
                                 <i class="fas fa-inbox"></i>
                                 <p>لا توجد حجوزات لعرضها</p>
                             </td>
@@ -1036,6 +1067,14 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
+        }
+
+        // ======= التحقق من تكرار الأسماء =======
+        function checkDuplicateName(name, excludeIndex = -1) {
+            return bookings.some((booking, index) => {
+                if (index === excludeIndex) return false;
+                return booking.الاسم.toLowerCase() === name.toLowerCase();
+            });
         }
 
         // ======= نظام الإحصائيات =======
@@ -1222,7 +1261,7 @@
                     bookings;
                 
                 if (filteredBookings.length === 0) {
-                    html = `<tr><td colspan="10" class="empty-state">
+                    html = `<tr><td colspan="11" class="empty-state">
                         <i class="fas fa-inbox"></i>
                         <p>${searchQuery ? 'لا توجد حجوزات مطابقة لـ "' + searchQuery + '"' : 'لا توجد حجوزات'}</p>
                     </td></tr>`;
@@ -1251,7 +1290,16 @@
                         html += `
                             <tr>
                                 <td>${booking.الاسم || 'غير محدد'}</td>
-                                <td>${booking.الهاتف || 'غير محدد'}</td>
+                                <td>
+                                    <a href="tel:${booking.الهاتف}" class="phone-link">
+                                        <i class="fas fa-phone"></i> ${booking.الهاتف || 'غير محدد'}
+                                    </a>
+                                </td>
+                                <td>
+                                    <button class="table-btn call" data-phone="${booking.الهاتf}">
+                                        <i class="fas fa-phone-alt"></i>
+                                    </button>
+                                </td>
                                 <td>${booking.اسم_الوكيل || 'غير محدد'}</td>
                                 <td>${booking.اسم_المستخدم || 'غير محدد'}</td>
                                 <td>${booking.العرض || 'غير محدد'}</td>
@@ -1302,6 +1350,16 @@
                             window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
                         } else {
                             showToast('الإحداثيات غير صالحة', 'error');
+                        }
+                    });
+                });
+
+                // إضافة مستمعي الأحداث لأزرار الاتصال
+                document.querySelectorAll('.table-btn.call').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const phone = btn.getAttribute('data-phone');
+                        if (phone) {
+                            window.open(`tel:${phone}`, '_self');
                         }
                     });
                 });
@@ -1439,6 +1497,13 @@
                 const lat = document.getElementById('editLat').value.trim();
                 const lng = document.getElementById('editLng').value.trim();
                 const coords = lat && lng ? `${lat}, ${lng}` : 'غير محدد';
+                
+                // التحقق من تكرار الاسم (باستثناء الحجز الحالي)
+                const name = bookings[currentEditIndex].الاسم;
+                if (checkDuplicateName(name, currentEditIndex)) {
+                    showToast('هذا الاسم موجود مسبقاً في النظام. يرجى استخدام اسم مختلف.', 'error');
+                    return;
+                }
                 
                 // تحديث بيانات الحجز
                 bookings[currentEditIndex].اسم_الوكيل = document.getElementById('editAgent').value.trim();
@@ -1633,6 +1698,12 @@
                     return;
                 }
                 
+                // التحقق من تكرار الاسم
+                if (checkDuplicateName(name)) {
+                    showToast('هذا الاسم موجود مسبقاً في النظام. يرجى استخدام اسم مختلف.', 'error');
+                    return;
+                }
+                
                 let phone = document.getElementById('phone').value.trim().replace(/[\s+()-]/g, '');
                 if (!phone) {
                     showToast('يرجى إدخال رقم هاتف.', 'error');
@@ -1701,6 +1772,18 @@
             } catch (error) {
                 console.error('خطأ في إرسال الحجز:', error);
                 showToast('حدث خطأ أثناء حفظ الحجز أو إرساله. يرجى المحاولة مرة أخرى.', 'error');
+            }
+        });
+
+        // ======= التحقق من تكرار الاسم أثناء الكتابة =======
+        document.getElementById('name').addEventListener('input', function() {
+            const name = this.value.trim();
+            const nameWarning = document.getElementById('nameWarning');
+            
+            if (name && checkDuplicateName(name)) {
+                nameWarning.style.display = 'block';
+            } else {
+                nameWarning.style.display = 'none';
             }
         });
 
