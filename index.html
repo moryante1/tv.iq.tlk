@@ -755,8 +755,8 @@ function renderBookingsTable(searchQuery = '') {
         document.querySelectorAll('.map-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const coords = btn.getAttribute('data-coords').split(',');
-                const lng = parseFloat(coords[0].trim()); // الأول أصبح خط الطول
-                const lat = parseFloat(coords[1].trim()); // الثاني أصبح خط العرض
+                const lng = parseFloat(coords[1].trim()); // الأول أصبح خط الطول
+                const lat = parseFloat(coords[0].trim()); // الثاني أصبح خط العرض
                 if (!isNaN(lat) && !isNaN(lng)) {
                     window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
                 } else {
