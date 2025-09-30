@@ -1,9 +1,49 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>```html
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>team group nbtl</title>
+<title>team group nbtel</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -251,7 +291,7 @@ img.logo {
 #bookingsTable tr:nth-child(even) {
   background: #f9fafb;
 }
-#bookingsTable .edit-btn, #bookingsTable .delete-btn {
+#bookingsTable .edit-btn, #bookingsTable .delete-btn, #bookingsTable .map-btn {
   background: #f59e0b;
   padding: 6px 12px;
   border-radius: 4px;
@@ -264,11 +304,17 @@ img.logo {
 #bookingsTable .delete-btn {
   background: #ef4444;
 }
+#bookingsTable .map-btn {
+  background: #6366f1;
+}
 #bookingsTable .edit-btn:hover {
   background: #d97706;
 }
 #bookingsTable .delete-btn:hover {
   background: #dc2626;
+}
+#bookingsTable .map-btn:hover {
+  background: #4f46e5;
 }
 .status-led {
   display: inline-block;
@@ -441,6 +487,16 @@ img.logo {
         <input id="phone" name="phone" type="tel" placeholder="أدخل رقم الهاتف" required>
       </div>
     </div>
+    <div class="row">
+      <div>
+        <label for="agent">اسم الوكيل</label>
+        <input id="agent" name="agent" type="text" placeholder="أدخل اسم الوكيل">
+      </div>
+      <div>
+        <label for="pppoeUsername">Username PPPoE</label>
+        <input id="pppoeUsername" name="pppoeUsername" type="text" placeholder="أدخل Username PPPoE">
+      </div>
+    </div>
     <div>
       <label>نوع العرض</label>
       <div class="offers" id="offersContainer"></div>
@@ -498,10 +554,13 @@ img.logo {
         <tr>
           <th>الاسم</th>
           <th>رقم الهاتف</th>
+          <th>اسم الوكيل</th>
+          <th>Username PPPoE</th>
           <th>العرض</th>
           <th>ملاحظات</th>
           <th>الحالة</th>
           <th>الإحداثيات</th>
+          <th>فتح الخريطة</th>
           <th>تعديل</th>
           <th>حذف</th>
         </tr>
@@ -524,6 +583,16 @@ img.logo {
 <div id="editOfferModal">
   <div>
     <h2 style="margin-top:0">تعديل الحجز</h2>
+    <div class="row">
+      <div>
+        <label for="editAgent">اسم الوكيل</label>
+        <input id="editAgent" name="editAgent" type="text" placeholder="أدخل اسم الوكيل">
+      </div>
+      <div>
+        <label for="editPppoeUsername">Username PPPoE</label>
+        <input id="editPppoeUsername" name="editPppoeUsername" type="text" placeholder="أدخل Username PPPoE">
+      </div>
+    </div>
     <div class="offers" id="editOffersContainer"></div>
     <input type="text" id="editManualOffer" placeholder="اكتب العرض يدوياً..." style="display:none;">
     <div>
@@ -628,7 +697,7 @@ function renderBookingsTable(searchQuery = '') {
             bookings.filter(booking => booking.الاسم.toLowerCase().includes(searchQuery.toLowerCase())) : 
             bookings;
         if (filteredBookings.length === 0) {
-            html = `<tr><td colspan="8" style="text-align:center;color:var(--muted);">
+            html = `<tr><td colspan="11" style="text-align:center;color:var(--muted);">
                 ${searchQuery ? 'لا توجد حجوزات مطابقة لـ "' + searchQuery + '"' : 'لا توجد حجوزات'}
                 </td></tr>`;
         } else {
@@ -644,14 +713,21 @@ function renderBookingsTable(searchQuery = '') {
                     'غير مشترك': 'red',
                     'تم رفض نهائي': 'blue'
                 }[booking.الحالة] || 'red';
+                const coords = booking.الإحداثيات || 'غير محدد';
+                const mapButton = coords !== 'غير محدد' ? 
+                    `<button class="map-btn" data-index="${originalIndex}" data-coords="${coords}">فتح الخريطة</button>` : 
+                    'غير متاح';
                 html += `
                     <tr>
                         <td>${booking.الاسم || 'غير محدد'}</td>
                         <td>${booking.الهاتف || 'غير محدد'}</td>
+                        <td>${booking.اسم_الوكيل || 'غير محدد'}</td>
+                        <td>${booking.اسم_المستخدم || 'غير محدد'}</td>
                         <td>${booking.العرض || 'غير محدد'}</td>
                         <td>${booking.ملاحظات || 'لا توجد ملاحظات'}</td>
                         <td><span class="status-led ${statusClass}"></span> ${booking.الحالة || 'غير مشترك'}</td>
-                        <td>${booking.الإحداثيات || 'غير محدد'}</td>
+                        <td>${coords}</td>
+                        <td>${mapButton}</td>
                         <td><button class="edit-btn" data-index="${originalIndex}">تعديل</button></td>
                         <td><button class="delete-btn" data-index="${originalIndex}">حذف</button></td>
                     </tr>`;
@@ -673,6 +749,18 @@ function renderBookingsTable(searchQuery = '') {
                     saveBookings();
                     alert('تم حذف الحجز بنجاح!');
                     renderBookingsTable(currentSearchQuery);
+                }
+            });
+        });
+        document.querySelectorAll('.map-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const coords = btn.getAttribute('data-coords').split(',');
+                const lat = parseFloat(coords[0].trim());
+                const lng = parseFloat(coords[1].trim());
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+                } else {
+                    alert('الإحداثيات غير صالحة');
                 }
             });
         });
@@ -779,10 +867,14 @@ function openEditOfferModal(index) {
         const editStatusSelect = document.getElementById('editStatus');
         const editLatInput = document.getElementById('editLat');
         const editLngInput = document.getElementById('editLng');
+        const editAgentInput = document.getElementById('editAgent');
+        const editPppoeUsernameInput = document.getElementById('editPppoeUsername');
         editManualOfferInput.style.display = 'none';
         editManualOfferInput.value = '';
         editNotesInput.value = bookings[index].ملاحظات || '';
         editStatusSelect.value = bookings[index].الحالة || 'غير مشترك';
+        editAgentInput.value = bookings[index].اسم_الوكيل || '';
+        editPppoeUsernameInput.value = bookings[index].اسم_المستخدم || '';
         const currentOffer = bookings[index].العرض || '';
         const isManual = !offerInfo[currentOffer];
         if (isManual) {
@@ -851,6 +943,8 @@ document.getElementById('saveEditOfferBtn').addEventListener('click', () => {
         bookings[currentEditIndex].ملاحظات = document.getElementById('editNotes').value.trim();
         bookings[currentEditIndex].الحالة = document.getElementById('editStatus').value;
         bookings[currentEditIndex].الإحداثيات = coords;
+        bookings[currentEditIndex].اسم_الوكيل = document.getElementById('editAgent').value.trim();
+        bookings[currentEditIndex].اسم_المستخدم = document.getElementById('editPppoeUsername').value.trim();
         saveBookings();
         document.getElementById('editOfferModal').style.display = 'none';
         alert('تم تعديل الحجز بنجاح!');
@@ -1223,6 +1317,8 @@ form.addEventListener('submit', function(e) {
         const data = {
             الاسم: name,
             الهاتف: phone,
+            اسم_الوكيل: form.agent.value.trim(),
+            اسم_المستخدم: form.pppoeUsername.value.trim(),
             العرض: offerText,
             التفاصيل: offerDesc,
             الإحداثيات: latEl.value && lngEl.value ? `${latEl.value}, ${lngEl.value}` : "غير محدد",
@@ -1237,6 +1333,8 @@ form.addEventListener('submit', function(e) {
         const message = encodeURIComponent(`📢 حجز جديد:
 👤 الاسم: ${data.الاسم}
 📞 الهاتف: ${data.الهاتف}
+👷 اسم الوكيل: ${data.اسم_الوكيل || 'غير محدد'}
+🖥️ Username PPPoE: ${data.اسم_المستخدم || 'غير محدد'}
 📦 العرض: ${data.العرض}
 📍 الإحداثيات: ${data.الإحداثيات}
 📝 ملاحظات: ${data.ملاحظات.substring(0, 500)}
@@ -1411,3 +1509,4 @@ function loadFileData(filename) {
 </script>
 </body>
 </html>
+```
