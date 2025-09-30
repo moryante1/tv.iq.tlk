@@ -584,6 +584,25 @@
             font-size: 16px;
         }
 
+        .phone-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: var(--light);
+        }
+
+        .phone-link:hover {
+            color: var(--primary-dark);
+            background: #e0f2fe;
+            text-decoration: none;
+        }
+
         @media (max-width: 768px) {
             .container {
                 border-radius: 0;
@@ -914,6 +933,14 @@
             </div>
             <div class="modal-body">
                 <div class="form-grid">
+                    <div class="form-group">
+                        <label for="editName">الاسم الكامل</label>
+                        <input id="editName" name="editName" type="text" placeholder="أدخل الاسم الكامل" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone">رقم الهاتف</label>
+                        <input id="editPhone" name="editPhone" type="tel" placeholder="أدخل رقم الهاتف" required>
+                    </div>
                     <div class="form-group">
                         <label for="editAgent">اسم الوكيل</label>
                         <input id="editAgent" name="editAgent" type="text" placeholder="أدخل اسم الوكيل">
@@ -1251,7 +1278,11 @@
                         html += `
                             <tr>
                                 <td>${booking.الاسم || 'غير محدد'}</td>
-                                <td>${booking.الهاتف || 'غير محدد'}</td>
+                                <td>
+                                    <a href="tel:${booking.الهاتف}" class="phone-link">
+                                        <i class="fas fa-phone"></i> ${booking.الهاتف || 'غير محدد'}
+                                    </a>
+                                </td>
                                 <td>${booking.اسم_الوكيل || 'غير محدد'}</td>
                                 <td>${booking.اسم_المستخدم || 'غير محدد'}</td>
                                 <td>${booking.العرض || 'غير محدد'}</td>
@@ -1321,6 +1352,8 @@
                 const booking = bookings[index];
                 
                 // تعبئة البيانات في النموذج
+                document.getElementById('editName').value = booking.الاسم || '';
+                document.getElementById('editPhone').value = booking.الهاتف || '';
                 document.getElementById('editAgent').value = booking.اسم_الوكيل || '';
                 document.getElementById('editPppoeUsername').value = booking.اسم_المستخدم || '';
                 document.getElementById('editNotes').value = booking.ملاحظات || '';
@@ -1423,6 +1456,18 @@
         // مستمعي الأحداث لنافذة التعديل
         document.getElementById('saveEditOfferBtn').addEventListener('click', () => {
             try {
+                const name = document.getElementById('editName').value.trim();
+                if (!name) {
+                    showToast('يرجى إدخال الاسم.', 'error');
+                    return;
+                }
+                
+                const phone = document.getElementById('editPhone').value.trim();
+                if (!phone) {
+                    showToast('يرجى إدخال رقم هاتف.', 'error');
+                    return;
+                }
+                
                 const selectedRadio = document.querySelector('input[name="editOffer"]:checked');
                 if (!selectedRadio) {
                     showToast('يرجى اختيار عرض أو كتابة عرض يدوي.', 'error');
@@ -1441,6 +1486,8 @@
                 const coords = lat && lng ? `${lat}, ${lng}` : 'غير محدد';
                 
                 // تحديث بيانات الحجز
+                bookings[currentEditIndex].الاسم = name;
+                bookings[currentEditIndex].الهاتف = phone;
                 bookings[currentEditIndex].اسم_الوكيل = document.getElementById('editAgent').value.trim();
                 bookings[currentEditIndex].اسم_المستخدم = document.getElementById('editPppoeUsername').value.trim();
                 bookings[currentEditIndex].العرض = offerText;
