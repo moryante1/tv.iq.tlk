@@ -603,6 +603,100 @@
             text-decoration: none;
         }
 
+        /* أنماط جديدة للتحكم بالشهور */
+        .month-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: var(--light);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .month-navigation {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .month-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .month-dropdown-btn {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 180px;
+            justify-content: space-between;
+        }
+
+        .month-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            min-width: 200px;
+            box-shadow: var(--shadow-lg);
+            border-radius: var(--radius);
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .month-dropdown-content.show {
+            display: block;
+        }
+
+        .month-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .month-option:hover {
+            background: var(--light);
+        }
+
+        .month-option.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .month-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .month-stat {
+            background: white;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .month-stat-value {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
         @media (max-width: 768px) {
             .container {
                 border-radius: 0;
@@ -639,6 +733,21 @@
             
             .modal-content {
                 width: 95%;
+            }
+
+            .month-controls {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .month-navigation {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .month-stats {
+                width: 100%;
+                justify-content: space-around;
             }
         }
 
@@ -849,9 +958,6 @@
                         <button type="button" class="btn btn-danger" id="clearAllBtn">
                             <i class="fas fa-trash-alt"></i> محو كل الحجوزات
                         </button>
-                        <button type="button" class="btn btn-danger" id="clearTodayBtn">
-                            <i class="fas fa-calendar-times"></i> حذف حجوزات اليوم
-                        </button>
                         <button type="button" class="btn btn-light" id="toggleTableBtn">
                             <i class="fas fa-eye"></i> إخفاء القائمة
                         </button>
@@ -866,6 +972,41 @@
                     <i class="fas fa-list"></i>
                     قائمة الحجوزات
                 </div>
+                
+                <!-- عناصر التحكم بالشهور -->
+                <div class="month-controls">
+                    <div class="month-navigation">
+                        <button type="button" class="btn btn-primary" id="prevMonthBtn">
+                            <i class="fas fa-chevron-right"></i> الشهر السابق
+                        </button>
+                        <div class="month-selector">
+                            <div class="month-dropdown">
+                                <button type="button" class="month-dropdown-btn" id="currentMonthBtn">
+                                    <span id="currentMonthText">الشهر الحالي</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div class="month-dropdown-content" id="monthDropdown">
+                                    <!-- سيتم ملؤها ديناميكياً -->
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="nextMonthBtn">
+                            الشهر التالي <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
+                    <div class="month-stats">
+                        <div class="month-stat">
+                            إجمالي الشهر: <span class="month-stat-value" id="monthTotal">0</span>
+                        </div>
+                        <div class="month-stat">
+                            تم الاشتراك: <span class="month-stat-value" id="monthSubscribed">0</span>
+                        </div>
+                        <div class="month-stat">
+                            غير مشترك: <span class="month-stat-value" id="monthNotSubscribed">0</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="search-box">
                     <input type="text" id="searchByName" placeholder="ابحث عن حجز بالاسم...">
                     <button type="button" class="btn btn-primary" id="searchByNameBtn">
@@ -1014,6 +1155,108 @@
             "عرض الطلاب": {description: "اشتراك إنترنت بسرعة 25 ميغابت/ث للطلاب", price: "40,000 د.ع"}
         };
 
+        // ======= نظام الشهور =======
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        const monthNames = [
+            "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+            "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+        ];
+
+        // الحصول على الشهر والسنة من التاريخ
+        function getMonthYearFromDate(dateString) {
+            const date = new Date(dateString);
+            return {
+                month: date.getMonth(),
+                year: date.getFullYear()
+            };
+        }
+
+        // تصفية الحجوزات حسب الشهر
+        function getBookingsForMonth(month, year) {
+            return bookings.filter(booking => {
+                if (!booking.التاريخ) return false;
+                const bookingDate = getMonthYearFromDate(booking.التاريخ);
+                return bookingDate.month === month && bookingDate.year === year;
+            });
+        }
+
+        // تحديث عرض الشهر الحالي
+        function updateCurrentMonthDisplay() {
+            const monthName = monthNames[currentMonth];
+            document.getElementById('currentMonthText').textContent = `${monthName} ${currentYear}`;
+            updateMonthStats();
+            renderBookingsTable();
+        }
+
+        // تحديث إحصائيات الشهر
+        function updateMonthStats() {
+            const monthBookings = getBookingsForMonth(currentMonth, currentYear);
+            const total = monthBookings.length;
+            const subscribed = monthBookings.filter(b => b.الحالة === 'تم الاشتراك').length;
+            const notSubscribed = monthBookings.filter(b => b.الحالة === 'غير مشترك').length;
+
+            document.getElementById('monthTotal').textContent = total;
+            document.getElementById('monthSubscribed').textContent = subscribed;
+            document.getElementById('monthNotSubscribed').textContent = notSubscribed;
+        }
+
+        // إنشاء قائمة الشهور المتاحة
+        function createMonthDropdown() {
+            const dropdown = document.getElementById('monthDropdown');
+            dropdown.innerHTML = '';
+
+            // جمع جميع الشهور الموجودة في البيانات
+            const availableMonths = new Set();
+            bookings.forEach(booking => {
+                if (booking.التاريخ) {
+                    const { month, year } = getMonthYearFromDate(booking.التاريخ);
+                    availableMonths.add(`${year}-${month}`);
+                }
+            });
+
+            // إضافة الشهر الحالي حتى لو لم يكن هناك حجوزات
+            availableMonths.add(`${currentYear}-${currentMonth}`);
+
+            // تحويل إلى مصفوفة وترتيبها
+            const sortedMonths = Array.from(availableMonths).sort((a, b) => {
+                const [yearA, monthA] = a.split('-').map(Number);
+                const [yearB, monthB] = b.split('-').map(Number);
+                return yearB - yearA || monthB - monthA;
+            });
+
+            // إنشاء خيارات القائمة
+            sortedMonths.forEach(monthKey => {
+                const [year, month] = monthKey.split('-').map(Number);
+                const monthName = monthNames[month];
+                const option = document.createElement('div');
+                option.className = 'month-option';
+                if (month === currentMonth && year === currentYear) {
+                    option.classList.add('active');
+                }
+                option.textContent = `${monthName} ${year}`;
+                option.addEventListener('click', () => {
+                    currentMonth = month;
+                    currentYear = year;
+                    updateCurrentMonthDisplay();
+                    dropdown.classList.remove('show');
+                });
+                dropdown.appendChild(option);
+            });
+
+            // إضافة خيار للشهر الحالي إذا لم يكن موجوداً
+            const currentMonthKey = `${currentYear}-${currentMonth}`;
+            if (!availableMonths.has(currentMonthKey)) {
+                const option = document.createElement('div');
+                option.className = 'month-option active';
+                option.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                option.addEventListener('click', () => {
+                    dropdown.classList.remove('show');
+                });
+                dropdown.prepend(option);
+            }
+        }
+
         // ======= تهيئة الخريطة =======
         const map = L.map('map', {
             zoomControl: true,
@@ -1080,7 +1323,7 @@
                 const totalOffers = Object.keys(offerInfo).length + (uniqueOffers.size - Object.keys(offerInfo).filter(offer => uniqueOffers.has(offer)).length);
                 document.getElementById('totalOffers').textContent = totalOffers;
                 updatePopularOffers();
-                renderBookingsTable();
+                updateMonthStats();
             } catch (error) {
                 console.error('خطأ في تحديث الإحصائيات:', error);
             }
@@ -1088,12 +1331,13 @@
 
         function updatePopularOffers() {
             try {
-                if (bookings.length === 0) {
+                const monthBookings = getBookingsForMonth(currentMonth, currentYear);
+                if (monthBookings.length === 0) {
                     document.getElementById('popularOffers').innerHTML = '<div style="color:var(--muted); font-size:12px;">لا توجد حجوزات بعد</div>';
                     return;
                 }
                 const offerCounts = {};
-                bookings.forEach(booking => {
+                monthBookings.forEach(booking => {
                     const offer = booking.العرض || 'غير محدد';
                     offerCounts[offer] = (offerCounts[offer] || 0) + 1;
                 });
@@ -1229,6 +1473,7 @@
             try {
                 localStorage.setItem('bookings', JSON.stringify(bookings));
                 updateStats();
+                createMonthDropdown();
                 renderBookingsTable();
             } catch (error) {
                 console.error('خطأ في حفظ الحجوزات:', error);
@@ -1244,23 +1489,39 @@
                 if (!tbody) return;
                 
                 let html = '';
-                const filteredBookings = searchQuery ? 
-                    bookings.filter(booking => booking.الاسم.toLowerCase().includes(searchQuery.toLowerCase())) : 
-                    bookings;
+                let monthBookings = getBookingsForMonth(currentMonth, currentYear);
                 
-                if (filteredBookings.length === 0) {
+                // تطبيق البحث إذا وجد
+                if (searchQuery) {
+                    monthBookings = monthBookings.filter(booking => 
+                        booking.الاسم.toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+                }
+                
+                if (monthBookings.length === 0) {
+                    const monthName = monthNames[currentMonth];
+                    const noDataMessage = searchQuery ? 
+                        `لا توجد حجوزات مطابقة لـ "${searchQuery}" في ${monthName} ${currentYear}` :
+                        `لا توجد حجوزات في ${monthName} ${currentYear}`;
+                    
                     html = `<tr><td colspan="10" class="empty-state">
                         <i class="fas fa-inbox"></i>
-                        <p>${searchQuery ? 'لا توجد حجوزات مطابقة لـ "' + searchQuery + '"' : 'لا توجد حجوزات'}</p>
+                        <p>${noDataMessage}</p>
                     </td></tr>`;
                 } else {
-                    filteredBookings.forEach((booking, index) => {
+                    monthBookings.forEach((booking, index) => {
                         if (!booking || !booking.الاسم || !booking.الهاتف || !booking.العرض) {
                             console.warn('حجز غير صالح في الفهرس:', index, booking);
                             return;
                         }
                         
-                        const originalIndex = bookings.indexOf(booking);
+                        // البحث عن الفهرس الحقيقي في المصفوفة الرئيسية
+                        const originalIndex = bookings.findIndex(b => 
+                            b.الاسم === booking.الاسم && 
+                            b.الهاتف === booking.الهاتف && 
+                            b.التاريخ === booking.التاريخ
+                        );
+                        
                         const statusClass = {
                             'تم الاشتراك': 'green',
                             'غير موافق': 'yellow',
@@ -1595,6 +1856,38 @@
             }
         });
 
+        // ======= التنقل بين الشهور =======
+        document.getElementById('prevMonthBtn').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            updateCurrentMonthDisplay();
+        });
+
+        document.getElementById('nextMonthBtn').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            updateCurrentMonthDisplay();
+        });
+
+        // ======= القائمة المنسدلة للشهور =======
+        document.getElementById('currentMonthBtn').addEventListener('click', () => {
+            const dropdown = document.getElementById('monthDropdown');
+            dropdown.classList.toggle('show');
+        });
+
+        // إغلاق القائمة المنسدلة عند النقر خارجها
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.month-dropdown')) {
+                document.getElementById('monthDropdown').classList.remove('show');
+            }
+        });
+
         // ======= إظهار/إخفاء الجدول =======
         document.getElementById('toggleTableBtn').addEventListener('click', () => {
             try {
@@ -1848,20 +2141,22 @@
 
         document.getElementById('exportBtn').addEventListener('click', () => {
             try {
-                if (bookings.length === 0) {
+                const monthBookings = getBookingsForMonth(currentMonth, currentYear);
+                if (monthBookings.length === 0) {
                     showToast("لا توجد حجوزات لتصديرها!", 'warning');
                     return;
                 }
                 
-                const ws = XLSX.utils.json_to_sheet(bookings);
+                const ws = XLSX.utils.json_to_sheet(monthBookings);
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "حجوزات");
+                const monthName = monthNames[currentMonth];
+                XLSX.utils.book_append_sheet(wb, ws, `حجوزات_${monthName}_${currentYear}`);
                 const wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'binary'});
                 const blob = new Blob([s2ab(wbout)], {type: "application/octet-stream"});
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = "حجوزات_العملاء.xlsx";
+                a.download = `حجوزات_${monthName}_${currentYear}.xlsx`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -1963,30 +2258,12 @@
             }
         });
 
-        // ======= حذف حجوزات اليوم =======
-        document.getElementById('clearTodayBtn').addEventListener('click', () => {
-            try {
-                if (confirm('هل أنت متأكد من حذف جميع حجوزات اليوم؟')) {
-                    const today = new Date().toISOString().split('T')[0];
-                    bookings = bookings.filter(booking => {
-                        if (!booking.التاريخ) return true;
-                        const bookingDate = new Date(booking.التاريخ).toISOString().split('T')[0];
-                        return bookingDate !== today;
-                    });
-                    saveBookings();
-                    showToast('تم حذف حجوزات اليوم بنجاح!');
-                }
-            } catch (error) {
-                console.error('خطأ في حذف حجوزات اليوم:', error);
-                showToast('حدث خطأ أثناء حذف حجوزات اليوم.', 'error');
-            }
-        });
-
         // ======= تهيئة التطبيق =======
         function initApp() {
             renderOffers();
             updateStats();
-            renderBookingsTable();
+            createMonthDropdown();
+            updateCurrentMonthDisplay();
         }
 
         // بدء التطبيق
