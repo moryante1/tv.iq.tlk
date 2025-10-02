@@ -46,15 +46,95 @@
             line-height: 1.6;
             min-height: 100vh;
             padding: 16px;
+            overflow-x: hidden;
+        }
+
+        /* أنيميشن الخلفية */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            animation: float 20s infinite linear;
+        }
+
+        .bg-bubble:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .bg-bubble:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            left: 80%;
+            animation-delay: -5s;
+        }
+
+        .bg-bubble:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            top: 80%;
+            left: 20%;
+            animation-delay: -10s;
+        }
+
+        .bg-bubble:nth-child(4) {
+            width: 100px;
+            height: 100px;
+            top: 30%;
+            left: 70%;
+            animation-delay: -15s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-20px) rotate(90deg);
+            }
+            50% {
+                transform: translateY(0) rotate(180deg);
+            }
+            75% {
+                transform: translateY(20px) rotate(270deg);
+            }
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: var(--radius);
             box-shadow: var(--shadow-lg);
             overflow: hidden;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.8s ease-out;
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .header {
@@ -64,6 +144,16 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            animation: headerGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes headerGlow {
+            from {
+                box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
+            }
+            to {
+                box-shadow: 0 0 30px rgba(37, 99, 235, 0.6);
+            }
         }
 
         .header::before {
@@ -76,6 +166,19 @@
             background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,128C960,128,1056,192,1152,192C1248,192,1344,128,1392,96L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
             background-size: cover;
             background-position: center;
+            animation: wave 10s infinite linear;
+        }
+
+        @keyframes wave {
+            0% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(-20px);
+            }
+            100% {
+                transform: translateX(0);
+            }
         }
 
         .logo {
@@ -83,17 +186,38 @@
             height: auto;
             margin-bottom: 10px;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         h1 {
             font-size: 24px;
             margin-bottom: 8px;
             font-weight: 700;
+            animation: textGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes textGlow {
+            from {
+                text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            }
+            to {
+                text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+            }
         }
 
         .subtitle {
             font-size: 14px;
             opacity: 0.9;
+            animation: fadeIn 1s ease-out 0.5s both;
         }
 
         .content {
@@ -108,10 +232,42 @@
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
             transition: var(--transition);
+            animation: sectionSlide 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .section:hover::before {
+            transform: scaleX(1);
+        }
+
+        @keyframes sectionSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .section:hover {
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
         }
 
         .section-title {
@@ -122,10 +278,35 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            animation: titleSlide 0.8s ease-out;
+        }
+
+        @keyframes titleSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .section-title i {
             font-size: 20px;
+            animation: iconBounce 2s infinite;
+        }
+
+        @keyframes iconBounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-5px);
+            }
+            60% {
+                transform: translateY(-3px);
+            }
         }
 
         .stats-grid {
@@ -143,19 +324,58 @@
             box-shadow: var(--shadow);
             border-left: 4px solid var(--primary);
             transition: var(--transition);
+            animation: statCardPop 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        @keyframes statCardPop {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            70% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .stat-card.today {
             border-left-color: var(--secondary);
+            animation-delay: 0.1s;
         }
 
         .stat-card.offers {
             border-left-color: var(--warning);
+            animation-delay: 0.2s;
+        }
+
+        .stat-card.whatsapp {
+            border-left-color: var(--success);
+            animation-delay: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px) scale(1.02);
         }
 
         .stat-value {
@@ -163,6 +383,18 @@
             font-weight: 800;
             margin: 8px 0;
             color: var(--dark);
+            animation: countUp 1s ease-out;
+        }
+
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .stat-label {
@@ -184,6 +416,7 @@
             padding: 10px 0;
             border-bottom: 1px solid var(--border);
             font-size: 14px;
+            animation: offerSlide 0.5s ease-out;
         }
 
         .offer-stat:last-child {
@@ -208,6 +441,18 @@
 
         .form-group {
             margin-bottom: 16px;
+            animation: formSlide 0.6s ease-out;
+        }
+
+        @keyframes formSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         label {
@@ -231,12 +476,23 @@
             font-size: 14px;
             transition: var(--transition);
             font-family: inherit;
+            animation: inputGlow 3s infinite alternate;
+        }
+
+        @keyframes inputGlow {
+            0% {
+                box-shadow: 0 0 0 transparent;
+            }
+            100% {
+                box-shadow: 0 0 10px rgba(37, 99, 235, 0.1);
+            }
         }
 
         input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            transform: translateY(-2px);
         }
 
         .input-icon {
@@ -263,6 +519,26 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            padding: 10px;
+            border-radius: var(--radius);
+            transition: var(--transition);
+            animation: offerSlide 0.5s ease-out;
+        }
+
+        @keyframes offerSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .offer-option:hover {
+            background: var(--light);
+            transform: translateX(5px);
         }
 
         .offer-option input {
@@ -282,6 +558,7 @@
             border-radius: var(--radius);
             font-size: 14px;
             border-right: 3px solid var(--primary);
+            animation: fadeIn 0.5s ease-out;
         }
 
         #map {
@@ -290,6 +567,18 @@
             overflow: hidden;
             box-shadow: var(--shadow);
             margin-bottom: 16px;
+            animation: mapSlide 0.8s ease-out;
+        }
+
+        @keyframes mapSlide {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .map-controls {
@@ -299,6 +588,7 @@
             margin-bottom: 16px;
         }
 
+        /* أنيميشن الأزرار المحسنة */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -313,74 +603,86 @@
             transition: var(--transition);
             text-align: center;
             font-family: inherit;
+            position: relative;
+            overflow: hidden;
+            animation: btnSlide 0.8s ease-out;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.05);
             box-shadow: var(--shadow-lg);
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
+        .btn:active {
+            transform: translateY(-1px) scale(1.02);
         }
 
-        .btn-primary:hover {
-            background: var(--primary-dark);
+        @keyframes btnSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            animation-delay: 0.1s;
         }
 
         .btn-secondary {
-            background: var(--secondary);
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
             color: white;
-        }
-
-        .btn-secondary:hover {
-            background: var(--secondary-dark);
+            animation-delay: 0.2s;
         }
 
         .btn-success {
-            background: var(--success);
+            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
             color: white;
-        }
-
-        .btn-success:hover {
-            background: var(--success-dark);
+            animation-delay: 0.3s;
         }
 
         .btn-warning {
-            background: var(--warning);
+            background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%);
             color: white;
-        }
-
-        .btn-warning:hover {
-            background: var(--warning-dark);
+            animation-delay: 0.4s;
         }
 
         .btn-danger {
-            background: var(--danger);
+            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
             color: white;
-        }
-
-        .btn-danger:hover {
-            background: var(--danger-dark);
+            animation-delay: 0.5s;
         }
 
         .btn-info {
-            background: var(--info);
+            background: linear-gradient(135deg, var(--info) 0%, var(--info-dark) 100%);
             color: white;
-        }
-
-        .btn-info:hover {
-            background: var(--info-dark);
+            animation-delay: 0.6s;
         }
 
         .btn-light {
             background: var(--light);
             color: var(--dark);
-        }
-
-        .btn-light:hover {
-            background: #e2e8f0;
+            animation-delay: 0.7s;
         }
 
         .action-buttons {
@@ -408,6 +710,18 @@
             box-shadow: var(--shadow);
             border-radius: var(--radius);
             overflow: hidden;
+            animation: tableSlide 0.8s ease-out;
+        }
+
+        @keyframes tableSlide {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         th, td {
@@ -427,8 +741,25 @@
             background: var(--light);
         }
 
+        tr {
+            animation: rowSlide 0.5s ease-out;
+        }
+
+        @keyframes rowSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         tr:hover {
             background: #f1f5f9;
+            transform: translateX(5px);
+            transition: var(--transition);
         }
 
         .status-led {
@@ -437,6 +768,16 @@
             height: 12px;
             border-radius: 50%;
             margin-left: 8px;
+            animation: statusPulse 2s infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
         }
 
         .status-led.green {
@@ -462,6 +803,7 @@
             justify-content: center;
         }
 
+        /* أنيميشن الأزرار الصغيرة */
         .table-btn {
             padding: 6px 10px;
             border: none;
@@ -474,6 +816,31 @@
             justify-content: center;
             min-width: 32px;
             height: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .table-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .table-btn:hover::before {
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+        }
+
+        .table-btn:hover {
+            transform: scale(1.1);
         }
 
         .table-btn.edit {
@@ -496,11 +863,6 @@
             color: white;
         }
 
-        .table-btn:hover {
-            opacity: 0.9;
-            transform: scale(1.05);
-        }
-
         .modal {
             display: none;
             position: fixed;
@@ -513,6 +875,18 @@
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(5px);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { 
+                opacity: 0; 
+                backdrop-filter: blur(0px);
+            }
+            to { 
+                opacity: 1; 
+                backdrop-filter: blur(5px);
+            }
         }
 
         .modal-content {
@@ -523,12 +897,18 @@
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: var(--shadow-lg);
-            animation: modalFadeIn 0.3s ease;
+            animation: modalSlideIn 0.3s ease;
         }
 
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes modalSlideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(-20px) scale(0.9);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
         }
 
         .modal-header {
@@ -552,6 +932,11 @@
             color: white;
             font-size: 24px;
             cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            transform: rotate(90deg);
         }
 
         .modal-body {
@@ -564,6 +949,21 @@
             padding: 16px;
             margin-bottom: 16px;
             border: 1px solid var(--border);
+            animation: cardPop 0.6s ease-out;
+        }
+
+        @keyframes cardPop {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            70% {
+                transform: scale(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .remove-offer {
@@ -580,6 +980,7 @@
 
         .remove-offer:hover {
             background: var(--danger-dark);
+            transform: translateY(-2px);
         }
 
         .coords-display {
@@ -589,18 +990,21 @@
             margin-top: 16px;
             font-size: 14px;
             text-align: center;
+            animation: fadeIn 0.5s ease-out;
         }
 
         .empty-state {
             text-align: center;
             padding: 40px 20px;
             color: var(--muted);
+            animation: fadeIn 0.8s ease-out;
         }
 
         .empty-state i {
             font-size: 48px;
             margin-bottom: 16px;
             opacity: 0.5;
+            animation: bounce 2s infinite;
         }
 
         .empty-state p {
@@ -624,9 +1028,10 @@
             color: var(--primary-dark);
             background: #e0f2fe;
             text-decoration: none;
+            transform: translateX(-5px);
         }
 
-        /* أنماط جديدة للتحكم بالشهور */
+        /* أنيميشن التنقل بين الشهور */
         .month-controls {
             display: flex;
             justify-content: space-between;
@@ -636,6 +1041,18 @@
             background: var(--light);
             border-radius: var(--radius);
             border: 1px solid var(--border);
+            animation: controlsSlide 0.6s ease-out;
+        }
+
+        @keyframes controlsSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .month-navigation {
@@ -667,6 +1084,12 @@
             min-width: 150px;
             justify-content: space-between;
             font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .month-dropdown-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
         }
 
         .month-dropdown-content {
@@ -681,6 +1104,18 @@
             z-index: 100;
             max-height: 300px;
             overflow-y: auto;
+            animation: dropdownSlide 0.3s ease;
+        }
+
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .month-dropdown-content.show {
@@ -697,6 +1132,7 @@
 
         .month-option:hover {
             background: var(--light);
+            transform: translateX(-5px);
         }
 
         .month-option.active {
@@ -715,6 +1151,12 @@
             padding: 6px 12px;
             border-radius: var(--radius);
             border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .month-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
         }
 
         .month-stat-value {
@@ -736,11 +1178,24 @@
             cursor: pointer;
             transition: var(--transition);
             font-size: 14px;
+            animation: navBtnPop 0.5s ease-out;
+        }
+
+        @keyframes navBtnPop {
+            0% {
+                transform: scale(0);
+            }
+            70% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         .nav-btn:hover {
             background: var(--primary-dark);
-            transform: translateY(-1px);
+            transform: translateY(-2px) rotate(5deg);
         }
 
         .nav-btn:disabled {
@@ -758,6 +1213,12 @@
             font-size: 14px;
             min-width: 140px;
             text-align: center;
+            transition: var(--transition);
+        }
+
+        .current-month:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
         }
 
         /* تحسينات تجربة المستخدم */
@@ -770,6 +1231,12 @@
         .loading-spinner i {
             font-size: 24px;
             color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .quick-actions {
@@ -790,17 +1257,20 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            animation: btnSlide 0.6s ease-out;
         }
 
         .quick-action-btn:hover {
             background: var(--light);
             border-color: var(--primary);
+            transform: translateY(-2px);
         }
 
         .quick-action-btn.active {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
+            transform: scale(1.05);
         }
 
         .fade-in {
@@ -808,8 +1278,14 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { 
+                opacity: 0; 
+                transform: translateY(10px) scale(0.95);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
         }
 
         .pulse {
@@ -817,9 +1293,141 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+            }
+            70% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+            }
+            100% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+            }
+        }
+
+        /* أنماط جديدة لقسم إدارة أرقام الواتساب */
+        .whatsapp-numbers-section {
+            background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+            border-right: 4px solid var(--success);
+        }
+
+        .whatsapp-number-item {
+            background: white;
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+            animation: cardPop 0.6s ease-out;
+        }
+
+        .whatsapp-number-item:hover {
+            box-shadow: var(--shadow);
+            transform: translateX(5px);
+        }
+
+        .whatsapp-number-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .whatsapp-number {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 16px;
+        }
+
+        .whatsapp-number-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .whatsapp-number-default {
+            background: var(--success);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        .whatsapp-number-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .whatsapp-number-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .whatsapp-number-btn.set-default {
+            background: var(--success);
+            color: white;
+        }
+
+        .whatsapp-number-btn.edit {
+            background: var(--warning);
+            color: white;
+        }
+
+        .whatsapp-number-btn.delete {
+            background: var(--danger);
+            color: white;
+        }
+
+        .whatsapp-number-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        /* تأثيرات الاهتزاز */
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* تأثيرات التدرج اللوني المتحرك */
+        .gradient-flow {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* تأثيرات الظهور بالتتابع */
+        .stagger-item {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: staggerFade 0.6s ease-out forwards;
+        }
+
+        @keyframes staggerFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @media (max-width: 768px) {
@@ -901,6 +1509,22 @@
             .quick-actions {
                 justify-content: center;
             }
+
+            .whatsapp-number-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .whatsapp-number-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .whatsapp-number-btn {
+                flex: 1;
+                text-align: center;
+            }
         }
 
         .leaflet-container {
@@ -916,6 +1540,13 @@
             border: 3px solid white;
             border-radius: 50%;
             box-shadow: var(--shadow);
+            animation: markerPulse 2s infinite;
+        }
+
+        @keyframes markerPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
         .toast {
@@ -931,13 +1562,13 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            transform: translateY(100px);
+            transform: translateY(100px) scale(0.8);
             opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
         .toast.show {
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
             opacity: 1;
         }
 
@@ -956,9 +1587,40 @@
         .toast.info {
             background: var(--info);
         }
+
+        /* تأثيرات التأخير للأنيميشن */
+        .section:nth-child(1) { animation-delay: 0.1s; }
+        .section:nth-child(2) { animation-delay: 0.2s; }
+        .section:nth-child(3) { animation-delay: 0.3s; }
+        .section:nth-child(4) { animation-delay: 0.4s; }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+        tr:nth-child(1) { animation-delay: 0.1s; }
+        tr:nth-child(2) { animation-delay: 0.2s; }
+        tr:nth-child(3) { animation-delay: 0.3s; }
+        tr:nth-child(4) { animation-delay: 0.4s; }
+        tr:nth-child(5) { animation-delay: 0.5s; }
+
+        .stagger-item:nth-child(1) { animation-delay: 0.1s; }
+        .stagger-item:nth-child(2) { animation-delay: 0.2s; }
+        .stagger-item:nth-child(3) { animation-delay: 0.3s; }
+        .stagger-item:nth-child(4) { animation-delay: 0.4s; }
+        .stagger-item:nth-child(5) { animation-delay: 0.5s; }
     </style>
 </head>
 <body>
+    <!-- أنيميشن الخلفية -->
+    <div class="bg-animation">
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+    </div>
+
     <div class="container">
         <div class="header">
             <img src="https://reseller.nbtel.iq/nb_logo.png" alt="شعار NBTEL" class="logo">
@@ -986,6 +1648,10 @@
                         <div class="stat-label">عدد العروض</div>
                         <div class="stat-value" id="totalOffers">0</div>
                     </div>
+                    <div class="stat-card whatsapp">
+                        <div class="stat-label">أرقام الواتساب</div>
+                        <div class="stat-value" id="whatsappNumbersCount">0</div>
+                    </div>
                 </div>
                 <div class="popular-offers">
                     <div class="section-title" style="font-size: 16px; margin-bottom: 12px;">
@@ -998,6 +1664,25 @@
                             <p>لا توجد بيانات كافية</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- قسم إدارة أرقام الواتساب -->
+            <div class="section whatsapp-numbers-section">
+                <div class="section-title">
+                    <i class="fab fa-whatsapp"></i>
+                    إدارة أرقام الواتساب
+                </div>
+                <div id="whatsappNumbersList">
+                    <!-- سيتم ملؤها ديناميكياً -->
+                </div>
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-success" id="addWhatsappNumberBtn">
+                        <i class="fas fa-plus"></i> إضافة رقم واتساب
+                    </button>
+                    <button type="button" class="btn btn-info" id="whatsappSettingsBtn">
+                        <i class="fas fa-cog"></i> إعدادات الواتساب
+                    </button>
                 </div>
             </div>
 
@@ -1312,6 +1997,40 @@
         </div>
     </div>
 
+    <!-- مودال إدارة أرقام الواتساب -->
+    <div id="whatsappNumbersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fab fa-whatsapp"></i> إدارة أرقام الواتساب</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="whatsappNumber">رقم الواتساب</label>
+                    <input type="tel" id="whatsappNumber" placeholder="أدخل رقم الواتساب (مثال: 964751234567)" class="with-icon">
+                </div>
+                <div class="form-group">
+                    <label for="whatsappLabel">تسمية الرقم (اختياري)</label>
+                    <input type="text" id="whatsappLabel" placeholder="مثال: دعم فني، مبيعات، إلخ">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="setAsDefault">
+                        تعيين كرقم افتراضي للدعم
+                    </label>
+                </div>
+                <div style="margin-top: 16px; display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-success" id="saveWhatsappNumberBtn" style="flex: 1;">
+                        <i class="fas fa-save"></i> حفظ الرقم
+                    </button>
+                    <button type="button" class="btn btn-danger" id="closeWhatsappModalBtn" style="flex: 1;">
+                        <i class="fas fa-times"></i> إغلاق
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast للإشعارات -->
     <div id="toast" class="toast">
         <i class="fas fa-check-circle"></i>
@@ -1327,14 +2046,146 @@
             "عرض الطلاب": {description: "اشتراك إنترنت بسرعة 25 ميغابت/ث للطلاب", price: "40,000 د.ع"}
         };
 
+        // ======= بيانات أرقام الواتساب =======
+        let whatsappNumbers = JSON.parse(localStorage.getItem('whatsappNumbers')) || [
+            { number: "9647512328848", label: "الدعم الرئيسي", isDefault: true }
+        ];
+
         // ======= متغيرات التحكم =======
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
         let currentFilter = 'all';
+        let currentWhatsappEditIndex = null;
         const monthNames = [
             "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
             "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
         ];
+
+        // ======= نظام أرقام الواتساب =======
+        function saveWhatsappNumbers() {
+            localStorage.setItem('whatsappNumbers', JSON.stringify(whatsappNumbers));
+            updateStats();
+            renderWhatsappNumbers();
+        }
+
+        function renderWhatsappNumbers() {
+            const container = document.getElementById('whatsappNumbersList');
+            if (!container) return;
+
+            if (whatsappNumbers.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fab fa-whatsapp"></i>
+                        <p>لا توجد أرقام واتساب مضافة</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            whatsappNumbers.forEach((item, index) => {
+                html += `
+                    <div class="whatsapp-number-item stagger-item">
+                        <div class="whatsapp-number-info">
+                            <div class="whatsapp-number">${formatPhoneNumber(item.number)}</div>
+                            <div class="whatsapp-number-label">${item.label || 'بدون تسمية'}</div>
+                            ${item.isDefault ? '<div class="whatsapp-number-default">افتراضي</div>' : ''}
+                        </div>
+                        <div class="whatsapp-number-actions">
+                            ${!item.isDefault ? `
+                                <button class="whatsapp-number-btn set-default" data-index="${index}" title="تعيين كافتراضي">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            ` : ''}
+                            <button class="whatsapp-number-btn edit" data-index="${index}" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="whatsapp-number-btn delete" data-index="${index}" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // إضافة مستمعي الأحداث
+            document.querySelectorAll('.whatsapp-number-btn.set-default').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.getAttribute('data-index'));
+                    setDefaultWhatsappNumber(index);
+                });
+            });
+
+            document.querySelectorAll('.whatsapp-number-btn.edit').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.getAttribute('data-index'));
+                    openWhatsappNumberModal(index);
+                });
+            });
+
+            document.querySelectorAll('.whatsapp-number-btn.delete').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.getAttribute('data-index'));
+                    deleteWhatsappNumber(index);
+                });
+            });
+        }
+
+        function formatPhoneNumber(number) {
+            const cleaned = number.replace(/\D/g, '');
+            if (cleaned.length === 12 && cleaned.startsWith('964')) {
+                return `+${cleaned.substring(0, 3)} ${cleaned.substring(3, 6)} ${cleaned.substring(6, 9)} ${cleaned.substring(9)}`;
+            }
+            return number;
+        }
+
+        function setDefaultWhatsappNumber(index) {
+            whatsappNumbers.forEach(item => item.isDefault = false);
+            whatsappNumbers[index].isDefault = true;
+            saveWhatsappNumbers();
+            showToast('تم تعيين الرقم الافتراضي بنجاح!');
+        }
+
+        function openWhatsappNumberModal(index = null) {
+            currentWhatsappEditIndex = index;
+            const modal = document.getElementById('whatsappNumbersModal');
+            const numberInput = document.getElementById('whatsappNumber');
+            const labelInput = document.getElementById('whatsappLabel');
+            const defaultCheckbox = document.getElementById('setAsDefault');
+
+            if (index !== null) {
+                const item = whatsappNumbers[index];
+                numberInput.value = item.number;
+                labelInput.value = item.label || '';
+                defaultCheckbox.checked = item.isDefault;
+            } else {
+                numberInput.value = '';
+                labelInput.value = '';
+                defaultCheckbox.checked = false;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function deleteWhatsappNumber(index) {
+            if (whatsappNumbers[index].isDefault) {
+                showToast('لا يمكن حذف الرقم الافتراضي', 'error');
+                return;
+            }
+
+            if (confirm('هل أنت متأكد من حذف هذا الرقم؟')) {
+                whatsappNumbers.splice(index, 1);
+                saveWhatsappNumbers();
+                showToast('تم حذف الرقم بنجاح!');
+            }
+        }
+
+        function getDefaultWhatsappNumber() {
+            const defaultNumber = whatsappNumbers.find(item => item.isDefault);
+            return defaultNumber ? defaultNumber.number : (whatsappNumbers.length > 0 ? whatsappNumbers[0].number : "9647512328848");
+        }
 
         // ======= نظام الشهور =======
         function getMonthYearFromDate(dateString) {
@@ -1383,10 +2234,8 @@
                 }
             });
 
-            // إضافة الشهر الحالي دائماً
             availableMonths.add(`${currentYear}-${currentMonth}`);
             
-            // إضافة الأشهر الـ 6 الماضية للتأكد من وجود خيارات
             const today = new Date();
             for (let i = 0; i < 6; i++) {
                 const pastDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
@@ -1492,6 +2341,7 @@
                 const uniqueOffers = new Set(bookings.map(booking => booking.العرض).filter(offer => offer));
                 const totalOffers = Object.keys(offerInfo).length + (uniqueOffers.size - Object.keys(offerInfo).filter(offer => uniqueOffers.has(offer)).length);
                 document.getElementById('totalOffers').textContent = totalOffers;
+                document.getElementById('whatsappNumbersCount').textContent = whatsappNumbers.length;
                 updatePopularOffers();
                 updateMonthStats();
             } catch (error) {
@@ -1663,7 +2513,6 @@
                     let html = '';
                     let monthBookings = getBookingsForMonth(currentMonth, currentYear);
                     
-                    // تطبيق البحث
                     if (searchQuery) {
                         monthBookings = monthBookings.filter(booking => 
                             booking.الاسم.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1671,7 +2520,6 @@
                         );
                     }
                     
-                    // تطبيق الفلتر
                     if (currentFilter !== 'all') {
                         monthBookings = monthBookings.filter(booking => booking.الحالة === currentFilter);
                     }
@@ -1745,7 +2593,6 @@
                     
                     tbody.innerHTML = html;
                     
-                    // إضافة مستمعي الأحداث للأزرار
                     document.querySelectorAll('.table-btn.edit').forEach(btn => {
                         btn.addEventListener('click', () => {
                             const index = btn.getAttribute('data-index');
@@ -1803,7 +2650,7 @@
                     return;
                 }
                 
-                const phoneNumber = "9647512328848";
+                const phoneNumber = getDefaultWhatsappNumber();
                 
                 const message = encodeURIComponent(`📢 حجز جديد:
 👤 الاسم: ${booking.الاسم}
@@ -1836,7 +2683,7 @@
                     return;
                 }
                 
-                const phoneNumber = "9647512328848";
+                const phoneNumber = getDefaultWhatsappNumber();
                 const selectedRadio = document.querySelector('input[name="offer"]:checked');
                 const offerText = selectedRadio ? (selectedRadio.value === 'manual' ? 
                     document.getElementById('manualOffer').value.trim() : selectedRadio.value) : 'غير محدد';
@@ -1902,7 +2749,6 @@
                 currentEditIndex = index;
                 const booking = bookings[index];
                 
-                // تعبئة البيانات في النموذج
                 document.getElementById('editName').value = booking.الاسم || '';
                 document.getElementById('editPhone').value = booking.الهاتف || '';
                 document.getElementById('editAgent').value = booking.اسم_الوكيل || '';
@@ -1910,12 +2756,10 @@
                 document.getElementById('editNotes').value = booking.ملاحظات || '';
                 document.getElementById('editStatus').value = booking.الحالة || 'غير مشترك';
                 
-                // تحميل الإحداثيات
                 const coords = booking.الإحداثيات?.split(',') || [];
                 document.getElementById('editLat').value = coords[0]?.trim() || '';
                 document.getElementById('editLng').value = coords[1]?.trim() || '';
                 
-                // إعداد العروض
                 const editOffersContainer = document.getElementById('editOffersContainer');
                 editOffersContainer.innerHTML = '';
                 
@@ -1955,7 +2799,6 @@
                 manualOption.appendChild(manualLabel);
                 editOffersContainer.appendChild(manualOption);
                 
-                // تحديد العرض الحالي
                 const currentOffer = booking.العرض || '';
                 const isManual = !offerInfo[currentOffer];
                 
@@ -1973,7 +2816,6 @@
                     }
                 }
                 
-                // إعداد الخريطة
                 if (!editMap) {
                     editMap = L.map('editMap', { zoomControl: true }).setView([36.3719, 43.1228], 12);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -2004,7 +2846,6 @@
             }
         }
 
-        // مستمعي الأحداث لنافذة التعديل
         document.getElementById('saveEditOfferBtn').addEventListener('click', () => {
             try {
                 const name = document.getElementById('editName').value.trim();
@@ -2036,7 +2877,6 @@
                 const lng = document.getElementById('editLng').value.trim();
                 const coords = lat && lng ? `${lat}, ${lng}` : 'غير محدد';
                 
-                // تحديث بيانات الحجز
                 bookings[currentEditIndex].الاسم = name;
                 bookings[currentEditIndex].الهاتف = phone;
                 bookings[currentEditIndex].اسم_الوكيل = document.getElementById('editAgent').value.trim();
@@ -2072,7 +2912,6 @@
             }
         });
 
-        // أحداث الخريطة في نافذة التعديل
         document.getElementById('editLocateBtn').addEventListener('click', () => {
             if (!navigator.geolocation) {
                 showToast('المتصفح لا يدعم تحديد الموقع.', 'error');
@@ -2128,16 +2967,49 @@
         // ======= تهيئة التطبيق =======
         function initApp() {
             renderOffers();
+            renderWhatsappNumbers();
             updateStats();
             createMonthDropdown();
             updateCurrentMonthDisplay();
             updateActiveFilter();
             
-            // إضافة تأثيرات عند التحميل
             document.querySelectorAll('.section').forEach((section, index) => {
                 section.style.animationDelay = `${index * 0.1}s`;
                 section.classList.add('fade-in');
             });
+
+            // إضافة تأثيرات تفاعلية إضافية
+            const importantButtons = ['quickWhatsappBtn', 'exportBtn', 'backupBtn'];
+            importantButtons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.addEventListener('mouseenter', () => {
+                        btn.classList.add('shake');
+                        setTimeout(() => btn.classList.remove('shake'), 500);
+                    });
+                }
+            });
+
+            // تأثير النبض للإحصائيات عند التحديث
+            function pulseStats() {
+                document.querySelectorAll('.stat-value').forEach(stat => {
+                    stat.classList.add('pulse');
+                    setTimeout(() => stat.classList.remove('pulse'), 1000);
+                });
+            }
+
+            // تحديث الإحصائيات مع تأثير
+            const originalUpdateStats = updateStats;
+            updateStats = function() {
+                originalUpdateStats();
+                setTimeout(pulseStats, 100);
+            };
+
+            // تأثير التدرج اللوني للرأس
+            setInterval(() => {
+                const header = document.querySelector('.header');
+                header.classList.toggle('gradient-flow');
+            }, 30000);
         }
 
         // بدء التطبيق
@@ -2147,7 +3019,6 @@
         document.getElementById('offersContainer').addEventListener('change', updateOfferDetails);
         document.getElementById('manualOffer').addEventListener('input', updateOfferDetails);
 
-        // أحداث التنقل بين الشهور
         document.getElementById('prevMonthBtn').addEventListener('click', () => {
             currentMonth--;
             if (currentMonth < 0) {
@@ -2166,7 +3037,6 @@
             updateCurrentMonthDisplay();
         });
 
-        // أحداث القائمة المنسدلة للشهور
         document.getElementById('monthDropdownBtn').addEventListener('click', () => {
             const dropdown = document.getElementById('monthDropdown');
             dropdown.classList.toggle('show');
@@ -2178,7 +3048,6 @@
             }
         });
 
-        // البحث
         document.getElementById('searchByNameBtn').addEventListener('click', () => {
             const searchQuery = document.getElementById('searchByName').value.trim();
             currentSearchQuery = searchQuery;
@@ -2191,7 +3060,6 @@
             renderBookingsTable(searchQuery);
         });
 
-        // إظهار/إخفاء الجدول
         document.getElementById('toggleTableBtn').addEventListener('click', () => {
             const bookingsSection = document.getElementById('bookingsSection');
             const toggleTableBtn = document.getElementById('toggleTableBtn');
@@ -2205,7 +3073,69 @@
             }
         });
 
-        // ... [بقية الأحداث تبقى كما هي] ...
+        // ======= أحداث أرقام الواتساب =======
+        document.getElementById('addWhatsappNumberBtn').addEventListener('click', () => {
+            openWhatsappNumberModal();
+        });
+
+        document.getElementById('whatsappSettingsBtn').addEventListener('click', () => {
+            openWhatsappNumberModal();
+        });
+
+        document.getElementById('saveWhatsappNumberBtn').addEventListener('click', () => {
+            try {
+                const number = document.getElementById('whatsappNumber').value.trim().replace(/\D/g, '');
+                const label = document.getElementById('whatsappLabel').value.trim();
+                const setAsDefault = document.getElementById('setAsDefault').checked;
+                
+                if (!number) {
+                    showToast('يرجى إدخال رقم واتساب صحيح.', 'error');
+                    return;
+                }
+                
+                if (number.length < 10) {
+                    showToast('يرجى إدخال رقم واتساب صحيح.', 'error');
+                    return;
+                }
+                
+                const existingIndex = whatsappNumbers.findIndex(item => item.number === number);
+                if (existingIndex !== -1 && existingIndex !== currentWhatsappEditIndex) {
+                    showToast('رقم الواتساب موجود مسبقاً.', 'error');
+                    return;
+                }
+                
+                if (currentWhatsappEditIndex !== null) {
+                    whatsappNumbers[currentWhatsappEditIndex].number = number;
+                    whatsappNumbers[currentWhatsappEditIndex].label = label;
+                    if (setAsDefault) {
+                        whatsappNumbers.forEach(item => item.isDefault = false);
+                        whatsappNumbers[currentWhatsappEditIndex].isDefault = true;
+                    }
+                } else {
+                    if (setAsDefault) {
+                        whatsappNumbers.forEach(item => item.isDefault = false);
+                    }
+                    whatsappNumbers.push({
+                        number: number,
+                        label: label,
+                        isDefault: setAsDefault || whatsappNumbers.length === 0
+                    });
+                }
+                
+                saveWhatsappNumbers();
+                document.getElementById('whatsappNumbersModal').style.display = 'none';
+                showToast(currentWhatsappEditIndex !== null ? 'تم تحديث الرقم بنجاح!' : 'تم إضافة الرقم بنجاح!');
+                currentWhatsappEditIndex = null;
+            } catch (error) {
+                console.error('خطأ في حفظ رقم الواتساب:', error);
+                showToast('حدث خطأ أثناء حفظ رقم الواتساب.', 'error');
+            }
+        });
+
+        document.getElementById('closeWhatsappModalBtn').addEventListener('click', () => {
+            document.getElementById('whatsappNumbersModal').style.display = 'none';
+            currentWhatsappEditIndex = null;
+        });
 
         // ======= نموذج الحجز =======
         document.getElementById('bookingForm').addEventListener('submit', function(e) {
@@ -2255,8 +3185,7 @@
                 bookings.push(data);
                 saveBookings();
                 
-                // إرسال إلى واتساب
-                const phoneNumber = "9647512328848";
+                const phoneNumber = getDefaultWhatsappNumber();
                 const message = encodeURIComponent(`📢 حجز جديد:
 👤 الاسم: ${data.الاسم}
 📞 الهاتف: ${data.الهاتف}
@@ -2271,7 +3200,6 @@
                 window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
                 showToast("تم حفظ الحجز وإرساله على واتساب!");
                 
-                // إعادة تعيين النموذج
                 document.getElementById('bookingForm').reset();
                 if (marker) {
                     map.removeLayer(marker);
@@ -2368,6 +3296,7 @@
             btn.addEventListener('click', function() {
                 document.getElementById('offersModal').style.display = 'none';
                 document.getElementById('editOfferModal').style.display = 'none';
+                document.getElementById('whatsappNumbersModal').style.display = 'none';
             });
         });
 
