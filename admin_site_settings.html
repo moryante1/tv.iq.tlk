@@ -1,0 +1,603 @@
+<!-- قسم إعدادات الموقع المُحسّن - يُضاف في admin.php -->
+
+<style>
+.settings-container {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 25px;
+    margin: 20px 0;
+}
+
+.settings-form {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    border: 2px solid rgba(76,201,240,0.2);
+    border-radius: 20px;
+    padding: 30px;
+    backdrop-filter: blur(10px);
+}
+
+.settings-preview {
+    background: linear-gradient(135deg, rgba(76,201,240,0.1), rgba(118,75,162,0.1));
+    border: 2px solid rgba(76,201,240,0.3);
+    border-radius: 20px;
+    padding: 25px;
+    position: sticky;
+    top: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.settings-group {
+    margin-bottom: 30px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.settings-group:last-child {
+    border-bottom: none;
+}
+
+.settings-group h3 {
+    color: #4cc9f0;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-group h3 i {
+    font-size: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="url"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #4cc9f0;
+    background: rgba(255,255,255,0.12);
+    box-shadow: 0 0 20px rgba(76,201,240,0.2);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.upload-area {
+    border: 3px dashed rgba(76,201,240,0.3);
+    border-radius: 15px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: rgba(255,255,255,0.03);
+}
+
+.upload-area:hover {
+    border-color: #4cc9f0;
+    background: rgba(76,201,240,0.1);
+    transform: translateY(-2px);
+}
+
+.upload-area i {
+    font-size: 3rem;
+    color: #4cc9f0;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.upload-area p {
+    color: #fff;
+    margin: 5px 0;
+}
+
+.upload-area p:last-child {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.upload-preview {
+    display: none;
+    max-width: 150px;
+    max-height: 150px;
+    margin: 15px auto;
+    border-radius: 12px;
+    border: 2px solid #4cc9f0;
+    box-shadow: 0 5px 20px rgba(76,201,240,0.3);
+}
+
+.upload-preview.show {
+    display: block;
+}
+
+.color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.color-picker-wrapper input[type="color"] {
+    width: 60px;
+    height: 60px;
+    border: 3px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.3s;
+}
+
+.color-picker-wrapper input[type="color"]:hover {
+    border-color: #4cc9f0;
+    transform: scale(1.05);
+}
+
+.color-value {
+    background: rgba(255,255,255,0.08);
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-family: monospace;
+    font-size: 1rem;
+    color: #4cc9f0;
+    border: 2px solid rgba(255,255,255,0.1);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+}
+
+.checkbox-group:hover {
+    background: rgba(76,201,240,0.1);
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    margin: 0;
+    cursor: pointer;
+    flex: 1;
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #4cc9f0, #3aa3c7);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 20px;
+    transition: all 0.3s;
+    box-shadow: 0 5px 20px rgba(76,201,240,0.3);
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(76,201,240,0.5);
+}
+
+.save-btn:active {
+    transform: translateY(0);
+}
+
+/* معاينة مباشرة */
+.preview-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.preview-header h3 {
+    color: #4cc9f0;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.preview-box {
+    background: rgba(0,0,0,0.3);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.preview-logo {
+    max-width: 80px;
+    max-height: 80px;
+    border-radius: 10px;
+    margin: 10px auto;
+    display: block;
+}
+
+.preview-title {
+    color: #4cc9f0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 10px 0;
+    text-align: center;
+}
+
+.preview-desc {
+    color: #aaa;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.preview-welcome {
+    background: linear-gradient(135deg, rgba(76,201,240,0.15), rgba(118,75,162,0.15));
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.preview-welcome h4 {
+    color: #4cc9f0;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.preview-welcome p {
+    color: #ccc;
+    font-size: 0.85rem;
+}
+
+.preview-footer {
+    text-align: center;
+    padding: 15px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.preview-contacts {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.preview-contacts a {
+    color: #4cc9f0;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+}
+
+.preview-contacts a:hover {
+    transform: scale(1.2);
+}
+
+@media(max-width: 1200px) {
+    .settings-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .settings-preview {
+        position: relative;
+        top: 0;
+        max-height: none;
+    }
+}
+</style>
+
+<section id="site-settings" class="section">
+    <h2 class="section-title">
+        <i class="fas fa-cog"></i> إعدادات الصفحة الرئيسية
+    </h2>
+    
+    <div class="settings-container">
+        <!-- نموذج الإعدادات -->
+        <div class="settings-form">
+            <form id="siteSettingsForm" onsubmit="saveSiteSettings(event)">
+                
+                <!-- معلومات الموقع -->
+                <div class="settings-group">
+                    <h3><i class="fas fa-info-circle"></i> معلومات الموقع</h3>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-heading"></i> اسم الموقع:</label>
+                        <input type="text" id="site_name" name="site_name" placeholder="Shashety IPTV" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-align-left"></i> وصف الموقع:</label>
+                        <input type="text" id="site_description" name="site_description" placeholder="نظام IPTV احترافي">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-image"></i> شعار الموقع:</label>
+                        <div class="upload-area" onclick="document.getElementById('site_logo_file').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>اضغط لرفع شعار الموقع</p>
+                            <p>PNG, JPG (موصى به: 200x200px)</p>
+                        </div>
+                        <input type="file" id="site_logo_file" accept="image/png,image/jpeg,image/jpg" style="display:none;" onchange="uploadSiteLogo(this)">
+                        <input type="hidden" id="site_logo" name="site_logo">
+                        <img id="site_logo_preview" class="upload-preview">
+                    </div>
+                </div>
+                
+                <!-- النصوص الترحيبية -->
+                <div class="settings-group">
+                    <h3><i class="fas fa-comments"></i> النصوص الترحيبية</h3>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-star"></i> عنوان الترحيب:</label>
+                        <input type="text" id="welcome_title" name="welcome_title" placeholder="مرحباً بك في عالم البث المباشر">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-paragraph"></i> نص الترحيب:</label>
+                        <textarea id="welcome_subtitle" name="welcome_subtitle" placeholder="شاهد آلاف القنوات من جميع أنحاء العالم"></textarea>
+                    </div>
+                </div>
+                
+                <!-- معلومات التواصل -->
+                <div class="settings-group">
+                    <h3><i class="fas fa-address-book"></i> معلومات التواصل</h3>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> رقم الهاتف:</label>
+                        <input type="text" id="contact_phone" name="contact_phone" placeholder="009647512328848">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> البريد الإلكتروني:</label>
+                        <input type="email" id="contact_email" name="contact_email" placeholder="info@shashety.tv">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fab fa-facebook"></i> رابط فيسبوك:</label>
+                        <input type="url" id="contact_facebook" name="contact_facebook" placeholder="https://facebook.com/username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fab fa-whatsapp"></i> رابط واتساب:</label>
+                        <input type="url" id="contact_whatsapp" name="contact_whatsapp" placeholder="https://wa.me/9647512328848">
+                    </div>
+                </div>
+                
+                <!-- المظهر -->
+                <div class="settings-group">
+                    <h3><i class="fas fa-palette"></i> المظهر والألوان</h3>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-fill-drip"></i> اللون الأساسي:</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="theme_color" name="theme_color" value="#4cc9f0">
+                            <span class="color-value" id="color_value">#4cc9f0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-copyright"></i> نص الحقوق:</label>
+                        <input type="text" id="footer_text" name="footer_text" placeholder="جميع الحقوق محفوظة © 2024">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-eye"></i> خيارات العرض:</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="show_categories_count" name="show_categories_count" value="1" checked>
+                            <label for="show_categories_count">عرض عدد القنوات في الأقسام</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="show_channels_count" name="show_channels_count" value="1" checked>
+                            <label for="show_channels_count">عرض جودة القنوات</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="save-btn">
+                    <i class="fas fa-save"></i> حفظ الإعدادات
+                </button>
+            </form>
+        </div>
+        
+        <!-- معاينة مباشرة -->
+        <div class="settings-preview">
+            <div class="preview-header">
+                <h3><i class="fas fa-eye"></i> معاينة مباشرة</h3>
+                <p style="color:#888;font-size:0.85rem;">التغييرات تظهر فوراً</p>
+            </div>
+            
+            <div class="preview-box">
+                <img id="preview_logo" class="preview-logo" style="display:none;">
+                <h4 id="preview_site_name" class="preview-title">Shashety IPTV</h4>
+                <p id="preview_site_desc" class="preview-desc">نظام IPTV احترافي</p>
+            </div>
+            
+            <div class="preview-welcome">
+                <h4 id="preview_welcome_title">مرحباً بك في عالم البث المباشر</h4>
+                <p id="preview_welcome_subtitle">شاهد آلاف القنوات من جميع أنحاء العالم</p>
+            </div>
+            
+            <div class="preview-footer" style="margin-top:20px;">
+                <p id="preview_footer_text">جميع الحقوق محفوظة © 2024 Shashety IPTV</p>
+                <div id="preview_contacts" class="preview-contacts">
+                    <a href="#" id="preview_phone"><i class="fas fa-phone"></i></a>
+                    <a href="#" id="preview_email"><i class="fas fa-envelope"></i></a>
+                    <a href="#" id="preview_facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="#" id="preview_whatsapp"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// تحديث المعاينة المباشرة
+function updatePreview() {
+    // اسم الموقع
+    const siteName = document.getElementById('site_name').value;
+    document.getElementById('preview_site_name').textContent = siteName || 'Shashety IPTV';
+    
+    // وصف الموقع
+    const siteDesc = document.getElementById('site_description').value;
+    document.getElementById('preview_site_desc').textContent = siteDesc || 'نظام IPTV احترافي';
+    
+    // عنوان الترحيب
+    const welcomeTitle = document.getElementById('welcome_title').value;
+    document.getElementById('preview_welcome_title').textContent = welcomeTitle || 'مرحباً بك';
+    
+    // نص الترحيب
+    const welcomeSubtitle = document.getElementById('welcome_subtitle').value;
+    document.getElementById('preview_welcome_subtitle').textContent = welcomeSubtitle || 'شاهد آلاف القنوات';
+    
+    // نص الحقوق
+    const footerText = document.getElementById('footer_text').value;
+    document.getElementById('preview_footer_text').textContent = footerText || '© 2024';
+    
+    // اللون
+    const themeColor = document.getElementById('theme_color').value;
+    document.getElementById('color_value').textContent = themeColor;
+    document.querySelectorAll('.preview-title, .preview-welcome h4, .preview-contacts a').forEach(el => {
+        el.style.color = themeColor;
+    });
+}
+
+// إضافة مستمعين للحقول
+document.querySelectorAll('#siteSettingsForm input, #siteSettingsForm textarea').forEach(input => {
+    input.addEventListener('input', updatePreview);
+});
+
+// تحديث عرض اللون
+document.getElementById('theme_color').addEventListener('input', function() {
+    document.getElementById('color_value').textContent = this.value;
+    updatePreview();
+});
+
+// رفع الشعار
+async function uploadSiteLogo(input) {
+    if(input.files && input.files[0]) {
+        const formData = new FormData();
+        formData.append('logo', input.files[0]);
+        
+        try {
+            const response = await fetch('upload_logo.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if(data.success) {
+                document.getElementById('site_logo').value = data.url;
+                document.getElementById('site_logo_preview').src = data.url;
+                document.getElementById('site_logo_preview').classList.add('show');
+                document.getElementById('preview_logo').src = data.url;
+                document.getElementById('preview_logo').style.display = 'block';
+                showNotification('تم رفع الشعار بنجاح!', 'success');
+            } else {
+                showNotification('خطأ: ' + data.message, 'error');
+            }
+        } catch(error) {
+            showNotification('خطأ في رفع الشعار', 'error');
+        }
+    }
+}
+
+// حفظ الإعدادات
+async function saveSiteSettings(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    
+    // إضافة قيم الـ checkboxes
+    formData.set('show_categories_count', document.getElementById('show_categories_count').checked ? '1' : '0');
+    formData.set('show_channels_count', document.getElementById('show_channels_count').checked ? '1' : '0');
+    
+    try {
+        const response = await fetch('settings.php?action=save_settings', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if(data.success) {
+            showNotification('تم حفظ الإعدادات بنجاح!', 'success');
+        } else {
+            showNotification('خطأ: ' + data.message, 'error');
+        }
+    } catch(error) {
+        showNotification('خطأ في حفظ الإعدادات', 'error');
+    }
+}
+
+// تحميل الإعدادات الحالية
+async function loadSiteSettings() {
+    try {
+        const response = await fetch('settings.php?action=get_settings');
+        const data = await response.json();
+        
+        if(data.success && data.settings) {
+            Object.keys(data.settings).forEach(key => {
+                const element = document.getElementById(key);
+                if(element) {
+                    if(element.type === 'checkbox') {
+                        element.checked = data.settings[key] == '1';
+                    } else {
+                        element.value = data.settings[key] || '';
+                    }
+                }
+            });
+            
+            // عرض الشعار إذا كان موجود
+            if(data.settings.site_logo) {
+                document.getElementById('site_logo_preview').src = data.settings.site_logo;
+                document.getElementById('site_logo_preview').classList.add('show');
+                document.getElementById('preview_logo').src = data.settings.site_logo;
+                document.getElementById('preview_logo').style.display = 'block';
+            }
+            
+            updatePreview();
+        }
+    } catch(error) {
+        console.error('خطأ في تحميل الإعدادات:', error);
+    }
+}
+
+// تحميل الإعدادات عند فتح الصفحة
+if(document.getElementById('site-settings')) {
+    loadSiteSettings();
+}
+</script>
