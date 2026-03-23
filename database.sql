@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: 23 مارس 2026 الساعة 16:59
+-- Generation Time: 23 مارس 2026 الساعة 17:33
 -- إصدار الخادم: 8.0.45-0ubuntu0.22.04.1
 -- PHP Version: 8.1.2-1ubuntu2.23
 
@@ -20,7 +20,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `iptv_db`
 --
-CREATE DATABASE IF NOT EXISTS `iptv_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+CREATE DATABASE IF NOT EXISTS `iptv_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `iptv_db`;
 
 -- --------------------------------------------------------
@@ -68,11 +68,7 @@ CREATE TABLE `admin_users` (
 --
 
 INSERT INTO `admin_users` (`id`, `username`, `password_hash`, `display_name`, `role`, `allowed_sections`, `is_active`, `created_at`, `last_login`) VALUES
-(1, 'admin', '$2y$12$D.MdRjm2H1Sai7S2f1Y47Ohfke2Ub93V//jLtHhtgVFg8g3eEfHlW', 'Admin', 'administrator', '[]', 1, '2026-02-26 21:37:19', '2026-03-23 16:56:22'),
-(2, 'yxbox', '$2y$10$iB/ht59TAS.t6gffi99BZubvXvo9mnc2AeMmeM32EPe4VDfnZJ2Fm', 'يوسف جرجيس', 'custom', '[\"series\",\"vupload\"]', 1, '2026-02-27 08:22:59', '2026-03-08 18:41:00'),
-(3, 'ASM', '$2y$10$WxqQFniy4qsU8wOVYyKYmO33E7TvzCR.vnEe8T91/b2Y2XlNgalAq', 'علي سمير', 'custom', '[\"dashboard\",\"categories\",\"channels\",\"series\",\"vupload\"]', 1, '2026-03-01 20:17:28', '2026-03-01 20:21:03'),
-(4, 'younis', '$2y$10$bE.jNnQ1k8gjmdh8WUaZZOquzcgIp7ZIgfqyMfEBCcmcLeuTqaBIG', 'استاذ يونس', 'custom', '[\"series\",\"vupload\"]', 1, '2026-03-04 13:47:31', '2026-03-04 20:30:10'),
-(5, 'ABD', '$2y$10$ZRk8XtnPMuFCRERuu5RZH.15Y67./m18p226MVMjSi4v3CDi/9hKm', 'ABD', 'custom', '[\"series\",\"vupload\"]', 1, '2026-03-17 16:43:21', '2026-03-17 16:43:33');
+(1, 'admin', '$2y$10$9ke4p3mzv9RcTVvnyDxw3OqhbXS2lyS7RcsenzCJBXCCsau75Ev6G', 'Admin', 'administrator', '[]', 1, '2026-02-26 21:37:19', '2026-03-23 17:32:14');
 
 -- --------------------------------------------------------
 
@@ -138,8 +134,7 @@ CREATE TABLE `channels` (
 --
 
 INSERT INTO `channels` (`id`, `category_id`, `name`, `slug`, `stream_url`, `subtitle_url`, `logo_url`, `logo_icon`, `description`, `quality`, `language`, `country`, `views_count`, `is_active`, `is_featured`, `display_order`, `created_at`, `updated_at`) VALUES
-(7, 5, 'Al-Sharqiya News-1', 'al-sharqiya-news-1', 'https://5d94523502c2d.streamlock.net/alsharqiyalive/mystream/playlist.m3u8', '', '/iptv/uploads/posters/logo_69bbbc2d1f3ac.jpg', 'fas fa-tv', '', 'HD', 'عربي', NULL, 54, 1, 0, 0, '2026-01-26 19:43:06', '2026-03-20 14:17:33'),
-(25, 1, 'MBC HD', 'mbc-hd-699cfb107996f', 'https://starshare.net:443/live/CVCVCVCV/CV1CV1CV1/308905.ts', '', '', 'fas fa-tv', NULL, 'HD', 'عربي', NULL, 15, 1, 0, 0, '2026-02-24 01:12:48', '2026-03-20 11:44:24');
+(7, 5, 'Al-Sharqiya News-1', 'al-sharqiya-news-1', 'https://5d94523502c2d.streamlock.net/alsharqiyalive/mystream/playlist.m3u8', '', '/iptv/uploads/posters/logo_69bbbc2d1f3ac.jpg', 'fas fa-tv', '', 'HD', 'عربي', NULL, 55, 1, 0, 0, '2026-01-26 19:43:06', '2026-03-23 17:27:16');
 
 -- --------------------------------------------------------
 
@@ -167,47 +162,7 @@ CREATE TABLE `episodes` (
 
 INSERT INTO `episodes` (`id`, `series_id`, `episode_number`, `title`, `stream_url`, `subtitle_url`, `duration`, `description`, `display_order`, `views_count`, `created_at`) VALUES
 (211, 25, 1, 'alfashafish1', '/iptv/uploads/series/ep_25_69b47b10f078e.mp4', '', '', NULL, 1, 5, '2026-03-13 21:01:05'),
-(212, 25, 1, 'alfashafish2', '/iptv/uploads/series/ep_25_69b47b2a46e87.mp4', '', '', NULL, 2, 2, '2026-03-13 21:01:30'),
-(213, 25, 1, 'alfashafish3', '/iptv/uploads/series/ep_25_69b47bd40fb3f.mp4', '', '', NULL, 3, 1, '2026-03-13 21:04:20'),
-(214, 25, 1, 'alfashafish5', '/iptv/uploads/series/ep_25_69b47ec017fc3.mp4', '', '', NULL, 5, 0, '2026-03-13 21:16:48'),
-(215, 25, 1, 'alfashafish6', '/iptv/uploads/series/ep_25_69b47ef33f7a1.mp4', '', '', NULL, 6, 0, '2026-03-13 21:17:39'),
-(216, 25, 1, 'alfashafish7', '/iptv/uploads/series/ep_25_69b47f3f6146b.mp4', '', '', NULL, 7, 0, '2026-03-13 21:18:55'),
-(217, 25, 1, 'alfashafish8', '/iptv/uploads/series/ep_25_69b47f5beff1c.mp4', '', '', NULL, 8, 0, '2026-03-13 21:19:24'),
-(218, 25, 1, 'alfashafish9', '/iptv/uploads/series/ep_25_69b47f5f0c2bf.mp4', '', '', NULL, 9, 0, '2026-03-13 21:19:27'),
-(219, 25, 1, 'alfashafish10', '/iptv/uploads/series/ep_25_69b47f623c999.mp4', '', '', NULL, 10, 0, '2026-03-13 21:19:30'),
-(220, 25, 1, 'alfashafish11', '/iptv/uploads/series/ep_25_69b47f6551069.mp4', '', '', NULL, 11, 0, '2026-03-13 21:19:33'),
-(221, 25, 1, 'alfashafish12', '/iptv/uploads/series/ep_25_69b47f681ee0b.mp4', '', '', NULL, 12, 0, '2026-03-13 21:19:36'),
-(222, 25, 1, 'الفشافيش - الحلقة الأخيرة', '/iptv/uploads/series/ep_25_69b47f6ae069f.mp4', '', '', NULL, 13, 0, '2026-03-13 21:19:39'),
-(223, 25, 1, 'alfashafish4', '/iptv/uploads/series/ep_25_69b47f9185b5b.mp4', '', '', NULL, 4, 2, '2026-03-13 21:20:17'),
-(253, 26, 1, 'hubizbuz1', '/iptv/uploads/series/ep_26_69b48928d8d01.mp4', '', '', NULL, 1, 2, '2026-03-13 22:01:13'),
-(254, 26, 2, 'hubizbuz2', '/iptv/uploads/series/ep_26_69b4892d8b1e8.mp4', '', '', NULL, 2, 0, '2026-03-13 22:01:18'),
-(255, 26, 3, 'hubizbuz3', '/iptv/uploads/series/ep_26_69b48932685c6.mp4', '', '', NULL, 3, 0, '2026-03-13 22:01:22'),
-(256, 26, 4, 'hubizbuz4', '/iptv/uploads/series/ep_26_69b48936e77e9.mp4', '', '', NULL, 4, 0, '2026-03-13 22:01:27'),
-(257, 26, 5, 'hubizbuz5', '/iptv/uploads/series/ep_26_69b4893c64b25.mp4', '', '', NULL, 5, 0, '2026-03-13 22:01:33'),
-(258, 26, 6, 'hubizbuz6', '/iptv/uploads/series/ep_26_69b48941e00ec.mp4', '', '', NULL, 6, 0, '2026-03-13 22:01:38'),
-(259, 26, 7, 'hubizbuz7', '/iptv/uploads/series/ep_26_69b48945c7682.mp4', '', '', NULL, 7, 0, '2026-03-13 22:01:42'),
-(260, 26, 8, 'hubizbuz8', '/iptv/uploads/series/ep_26_69b4894a89860.mp4', '', '', NULL, 8, 0, '2026-03-13 22:01:47'),
-(261, 26, 9, 'hubizbuz9', '/iptv/uploads/series/ep_26_69b4894f68c30.mp4', '', '', NULL, 9, 0, '2026-03-13 22:01:51'),
-(262, 26, 10, 'hubizbuz10', '/iptv/uploads/series/ep_26_69b48954aca4d.mp4', '', '', NULL, 10, 0, '2026-03-13 22:01:57'),
-(263, 26, 11, 'hubizbuz11', '/iptv/uploads/series/ep_26_69b4895a2ebee.mp4', '', '', NULL, 11, 0, '2026-03-13 22:02:03'),
-(264, 26, 12, 'hubizbuz12', '/iptv/uploads/series/ep_26_69b48960a5785.mp4', '', '', NULL, 12, 0, '2026-03-13 22:02:09'),
-(265, 26, 13, 'hubizbuz13', '/iptv/uploads/series/ep_26_69b489662acbe.mp4', '', '', NULL, 13, 0, '2026-03-13 22:02:15'),
-(266, 26, 16, 'hubizbuz16', '/iptv/uploads/series/ep_26_69b489a2c3fd3.mp4', '', '', NULL, 16, 0, '2026-03-13 22:03:16'),
-(267, 26, 17, 'hubizbuz17', '/iptv/uploads/series/ep_26_69b489a9a627e.mp4', '', '', NULL, 17, 1, '2026-03-13 22:03:22'),
-(268, 26, 19, 'hubizbuz19', '/iptv/uploads/series/ep_26_69b489c149554.mp4', '', '', NULL, 18, 0, '2026-03-13 22:03:47'),
-(269, 26, 20, 'hubizbuz20', '/iptv/uploads/series/ep_26_69b489c8d3c44.mp4', '', '', NULL, 19, 0, '2026-03-13 22:03:53'),
-(270, 26, 21, 'hubizbuz21', '/iptv/uploads/series/ep_26_69b489cf33e5d.mp4', '', '', NULL, 20, 0, '2026-03-13 22:04:01'),
-(271, 26, 22, 'hubizbuz22', '/iptv/uploads/series/ep_26_69b489d84e900.mp4', '', '', NULL, 21, 0, '2026-03-13 22:04:10'),
-(272, 26, 23, 'hubizbuz23', '/iptv/uploads/series/ep_26_69b489df01d5c.mp4', '', '', NULL, 22, 0, '2026-03-13 22:04:16'),
-(273, 26, 24, 'hubizbuz24', '/iptv/uploads/series/ep_26_69b489e55f60c.mp4', '', '', NULL, 23, 0, '2026-03-13 22:04:22'),
-(274, 26, 25, 'hubizbuz25', '/iptv/uploads/series/ep_26_69b489ede0bc3.mp4', '', '', NULL, 24, 0, '2026-03-13 22:04:32'),
-(275, 26, 28, 'hubizbuz28', '/iptv/uploads/series/ep_26_69b48a12d231b.mp4', '', '', NULL, 27, 0, '2026-03-13 22:05:07'),
-(276, 26, 29, 'hubizbuz29', '/iptv/uploads/series/ep_26_69b48a1a69fc3.mp4', '', '', NULL, 28, 0, '2026-03-13 22:05:15'),
-(277, 26, 30, 'حبزبوز - الحلقة الأخيرة', '/iptv/uploads/series/ep_26_69b48a20d1a15.mp4', '', '', NULL, 29, 1, '2026-03-13 22:05:22'),
-(278, 26, 1, 'hubizbuz14', '/iptv/uploads/series/ep_26_69b48a82ae4b5.mp4', '', '', NULL, 14, 0, '2026-03-13 22:07:00'),
-(279, 26, 2, 'hubizbuz15', '/iptv/uploads/series/ep_26_69b48a8a0adf4.mp4', '', '', NULL, 15, 1, '2026-03-13 22:07:07'),
-(280, 26, 3, 'hubizbuz26', '/iptv/uploads/series/ep_26_69b48a913b480.mp4', '', '', NULL, 25, 0, '2026-03-13 22:07:14'),
-(281, 26, 4, 'hubizbuz27', '/iptv/uploads/series/ep_26_69b48a95d3da5.mp4', '', '', NULL, 26, 0, '2026-03-13 22:07:19');
+(253, 26, 1, 'hubizbuz1', '/iptv/uploads/series/ep_26_69b48928d8d01.mp4', '', '', NULL, 1, 2, '2026-03-13 22:01:13');
 
 -- --------------------------------------------------------
 
@@ -271,9 +226,9 @@ INSERT INTO `settings` (`id`, `setting_key`, `setting_value`, `updated_at`) VALU
 (14, 'maintenance_mode', '0', '2026-02-19 22:39:34'),
 (15, 'analytics_enabled', '1', '2026-02-19 22:39:34'),
 (29, 'tmdb_api_key', '83d373edc8a5aed75134929d1a9b3eab', '2026-02-23 06:33:31'),
-(30, 'os_username', 'ali920', '2026-02-23 06:33:31'),
-(31, 'os_password', 'noor1992320', '2026-02-23 06:33:31'),
-(32, 'os_api_key', 'tPFGct3qeswO1BkgDD2sbacAU62Apiwb', '2026-02-23 06:33:31'),
+(30, 'os_username', 'admin', '2026-03-23 17:31:28'),
+(31, 'os_password', '10102525555', '2026-03-23 17:31:28'),
+(32, 'os_api_key', '83d373edc8a5aed75134929d1a9b04252', '2026-03-23 17:31:28'),
 (33, 'omdb_api_key', 'http://www.omdbapi.com/?i=tt3896198&apikey=c8a63a4c', '2026-02-27 14:25:08'),
 (34, 'dlna_enabled', '1', '2026-03-02 11:53:18'),
 (35, 'enable_cast', '1', '2026-03-02 14:04:38'),
@@ -333,7 +288,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `role`, `last_login`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '$2y$12$D.MdRjm2H1Sai7S2f1Y47Ohfke2Ub93V//jLtHhtgVFg8g3eEfHlW', NULL, 'admin', '2026-03-23 16:56:22', '2026-02-19 22:39:34', '2026-03-23 16:56:22'),
+(1, 'admin', '$2y$10$9ke4p3mzv9RcTVvnyDxw3OqhbXS2lyS7RcsenzCJBXCCsau75Ev6G', NULL, 'admin', '2026-03-23 17:28:37', '2026-02-19 22:39:34', '2026-03-23 17:28:37'),
 (2, 'yxbox', '$2y$10$iB/ht59TAS.t6gffi99BZubvXvo9mnc2AeMmeM32EPe4VDfnZJ2Fm', NULL, 'admin', '2026-03-08 18:40:59', '2026-02-27 08:22:59', '2026-03-08 18:40:59'),
 (3, 'ASM', '$2y$10$WxqQFniy4qsU8wOVYyKYmO33E7TvzCR.vnEe8T91/b2Y2XlNgalAq', NULL, 'admin', '2026-03-01 20:19:01', '2026-03-01 20:17:28', '2026-03-01 20:19:01'),
 (4, 'younis', '$2y$10$bE.jNnQ1k8gjmdh8WUaZZOquzcgIp7ZIgfqyMfEBCcmcLeuTqaBIG', NULL, 'admin', '2026-03-04 20:29:47', '2026-03-04 13:47:31', '2026-03-04 20:29:47'),
@@ -522,7 +477,8 @@ INSERT INTO `view_stats` (`id`, `channel_id`, `ip_address`, `user_agent`, `viewe
 (176, 7, '10.5.50.1', 'Mozilla/5.0 (Linux; Android 12; TGR-W09 Build/HUAWEITGR-W09; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/114.0.5735.196 Safari/537.36 Vinebre', '2026-03-20 11:44:28'),
 (177, 7, '10.5.50.1', 'Mozilla/5.0 (Linux; Android 12; TGR-W09 Build/HUAWEITGR-W09; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/114.0.5735.196 Safari/537.36 Vinebre', '2026-03-20 14:16:46'),
 (178, 7, '10.5.50.1', 'Mozilla/5.0 (Linux; Android 12; TGR-W09 Build/HUAWEITGR-W09; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/114.0.5735.196 Safari/537.36 Vinebre', '2026-03-20 14:17:10'),
-(179, 7, '10.5.50.1', 'Mozilla/5.0 (Linux; Android 12; TGR-W09 Build/HUAWEITGR-W09; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/114.0.5735.196 Safari/537.36 Vinebre', '2026-03-20 14:17:33');
+(179, 7, '10.5.50.1', 'Mozilla/5.0 (Linux; Android 12; TGR-W09 Build/HUAWEITGR-W09; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/114.0.5735.196 Safari/537.36 Vinebre', '2026-03-20 14:17:33'),
+(180, 7, '192.168.1.203', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-03-23 17:27:16');
 
 --
 -- Indexes for dumped tables
@@ -642,13 +598,13 @@ ALTER TABLE `channels`
 -- AUTO_INCREMENT for table `episodes`
 --
 ALTER TABLE `episodes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1807;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1808;
 
 --
 -- AUTO_INCREMENT for table `series`
 --
 ALTER TABLE `series`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
 
 --
 -- AUTO_INCREMENT for table `settings`
@@ -672,7 +628,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `view_stats`
 --
 ALTER TABLE `view_stats`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=180;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=181;
 
 --
 -- قيود الجداول المحفوظة
